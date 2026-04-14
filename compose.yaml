@@ -1,11 +1,12 @@
 version: '3.1'
 
 services:
-  postgres:
-    image: 'postgres:latest'
+  mariadb:
+    image: 'mariadb:latest'
     environment:
-      - 'POSTGRES_DB=mydatabase'
-      - 'POSTGRES_PASSWORD=secret'
-      - 'POSTGRES_USER=myuser'
+      - 'MARIADB_DATABASE=mydatabase'
+      - 'MARIADB_ROOT_PASSWORD=secret'
+      - 'MARIADB_USER=myuser'
+      - 'MARIADB_PASSWORD=myuser_pw'
     ports:
-      - '5432:5432'
+      - '3306:3306'
