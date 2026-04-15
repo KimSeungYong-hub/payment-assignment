@@ -1,0 +1,13 @@
+package com.practice.paymentassignment.dto;
+
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+@Getter
+@RequiredArgsConstructor
+public class PaymentPrepareRequest {
+    private final Long userId;
+    private final Long merchantId;
+    private final int amount;
+
+}
