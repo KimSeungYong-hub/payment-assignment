@@ -10,3 +10,8 @@ services:
       - 'MARIADB_PASSWORD=myuser_pw'
     ports:
       - '3306:3306'
+  redis:
+    image: 'redis:7-alpine'
+#    restart: unless-stopped
+    ports:
+      - '6379'
