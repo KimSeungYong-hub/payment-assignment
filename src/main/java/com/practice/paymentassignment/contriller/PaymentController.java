@@ -22,8 +22,10 @@ public class PaymentController {
     }
 
     @PostMapping("/approve")
-    public ResponseEntity<PaymentApproveResponse> approvePayment(@RequestBody PaymentRequest request){
-        PaymentApproveResponse response = paymentService.requestPayment(request);
+    public ResponseEntity<PaymentApproveResponse> approvePayment(@RequestBody PaymentRequest request,
+                                                                 @RequestHeader(value = "Idempotency-Key") String idempotencyKey)
+    {
+        PaymentApproveResponse response = paymentService.requestPayment(request, idempotencyKey);
         return ResponseEntity.ok(response);
     }
 }

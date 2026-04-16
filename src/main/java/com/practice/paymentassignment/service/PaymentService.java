@@ -28,20 +28,19 @@ public class PaymentService {
 
 
     @Transactional
-    public PaymentApproveResponse requestPayment(PaymentRequest request){
+    public PaymentApproveResponse requestPayment(PaymentRequest request, String idempotencyKey){
         String merchantName = request.getMerchantName();
-        String orderId = request.getOrderId();
         Long merchantId = request.getMerchantId();
         Long userId = request.getUserId();
         int amount = request.getAmount();
 
-        validatePaymentStatus(orderId);
+        validatePaymentStatus(idempotencyKey);
         validateMerchant(merchantName);
 
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
         user.pay(amount);
 
-        Payment payment = paymentRepository.findByOrderId(orderId);
+        Payment payment = paymentRepository.findByOrderId(idempotencyKey);
         payment.complete();
 
 
