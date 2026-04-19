@@ -5,21 +5,19 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Getter
 public class PaymentRequest {
     private Long userId;
-    private Long merchantId;
     private Long paymentId;
-    private String merchantName;
-    private int amount;
-    private String orderId;
+    private Long merchantId;
+    private BigDecimal amount;
 
-    public PaymentRequest(Long userId, Long merchantId,Long paymentId,String merchantName, int amount, String orderId) {
+    public PaymentRequest(Long userId, Long paymentId, Long merchantId, BigDecimal amount) {
         this.userId = userId;
-        this.merchantId = merchantId;
         this.paymentId = paymentId;
-        this.merchantName = merchantName;
+        this.merchantId = merchantId;
         this.amount = amount;
-        this.orderId = orderId;
     }
 }
