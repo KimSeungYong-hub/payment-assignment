@@ -7,10 +7,15 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.OffsetDateTime;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Getter
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Payment {
     @Id
@@ -22,34 +27,36 @@ public class Payment {
     private Merchant merchant;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+    @JoinColumn(name = "wallet_id", nullable = false)
+    private Wallet wallet;
 
-    private int amount;
+    @Column(precision = 19, scale = 2)
+    private BigDecimal amount;
 
     @Enumerated(EnumType.STRING)
     private PaymentStatus status;
 
-    @Column(unique=true)
+    @Column(unique = true)
     private String orderId;
 
-    private OffsetDateTime dateTime;
+    @CreatedDate
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime dateTime;
 
     @Builder
-    public Payment( Merchant merchant, int amount, User user, PaymentStatus status, String orderId) {
+    public Payment(Merchant merchant, BigDecimal amount, Wallet wallet, PaymentStatus status, String orderId) {
         this.merchant = merchant;
         this.amount = amount;
-        this.user = user;
+        this.wallet = wallet;
         this.status = status;
         this.orderId = orderId;
     }
 
-
-    public void complete(){
+    public void complete() {
         this.status = PaymentStatus.SUCCESS;
     }
 
-    public void cancel(){
+    public void cancel() {
         this.status = PaymentStatus.CANCELED;
     }
 
