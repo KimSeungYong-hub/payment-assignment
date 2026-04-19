@@ -7,87 +7,89 @@ import com.practice.paymentassignment.dto.PaymentApproveResponse;
 import com.practice.paymentassignment.entity.Merchant;
 import com.practice.paymentassignment.entity.Payment;
 import com.practice.paymentassignment.entity.PaymentStatus;
-import com.practice.paymentassignment.entity.User;
 import com.practice.paymentassignment.exception.MerchantNotFoundException;
 import com.practice.paymentassignment.exception.UserNotFoundException;
 import com.practice.paymentassignment.repository.MerchantRepository;
 import com.practice.paymentassignment.repository.PaymentRepository;
-import com.practice.paymentassignment.repository.UserRepository;
+import com.practice.paymentassignment.repository.WalletRepository;
+import com.practice.paymentassignment.entity.Wallet;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.UUID;
+import com.practice.paymentassignment.exception.PaymentNotFoundException;
 
 @RequiredArgsConstructor
 @Service
 public class PaymentService {
     private final MerchantRepository merchantRepository;
     private final PaymentRepository paymentRepository;
-    private final UserRepository userRepository;
-
+    private final WalletRepository walletRepository;
 
     @Transactional
-    public PaymentApproveResponse requestPayment(PaymentRequest request, String idempotencyKey){
-        String merchantName = request.getMerchantName();
-        Long merchantId = request.getMerchantId();
-        Long userId = request.getUserId();
-        int amount = request.getAmount();
+    public PaymentApproveResponse requestPayment(PaymentRequest request) {
+        Payment payment = paymentRepository.findByIdWithPessimisticLock(request.getPaymentId())
+                .orElseThrow(() -> new PaymentNotFoundException("주문 정보를 찾을 수 없습니다."));
 
-        validatePaymentStatus(idempotencyKey);
-        validateMerchant(merchantName);
+        validatePaymentStatus(payment);
+        validatePaymentRequest(payment, request);
 
-        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
-        user.pay(amount);
+        Wallet wallet = walletRepository.findByIdWithPessimisticLock(payment.getWallet().getId())
+                .orElseThrow(() -> new IllegalArgumentException("사용자의 지갑 정보를 찾을 수 없습니다."));
 
-        Payment payment = paymentRepository.findByOrderId(idempotencyKey);
+        wallet.pay(payment.getAmount());
         payment.complete();
-
-
 
         return PaymentApproveResponse.from(true, "결제가 완료되었습니다.");
     }
 
-    public void validateMerchant(String merchantName){
-        if(!merchantRepository.existsByMerchantName((merchantName))){
-            throw new MerchantNotFoundException("유효하지 않은 가맹점입니다.");
+    private void validatePaymentRequest(Payment payment, PaymentRequest request) {
+        if (!payment.getWallet().getUser().getId().equals(request.getUserId())) {
+            throw new IllegalArgumentException("결제 요청자와 주문자가 일치하지 않습니다.");
+        }
+
+        if (!payment.getMerchant().getId().equals(request.getMerchantId())) {
+            throw new IllegalArgumentException("가맹점 정보가 일치하지 않습니다. (위변조 의심)");
+        }
+
+        if (payment.getAmount().compareTo(request.getAmount()) != 0) {
+            throw new IllegalArgumentException("결제 요청 금액이 실제 주문 금액과 일치하지 않습니다. (위변조 결제 방어)");
         }
     }
 
-    public void validatePaymentStatus(String orderId){
-        if(!paymentRepository.existsByOrderId(orderId)){
-            throw new MerchantNotFoundException("이미 처리 중이거나 완료된 주문입니다.");
+    public void validatePaymentStatus(Payment payment) {
+        if (!payment.getStatus().equals(PaymentStatus.READY)) {
+            throw new PaymentNotFoundException("이미 처리 중이거나 완료된 주문입니다.");
         }
     }
 
-
-    public PaymentPrepareResponse preparePayment(PaymentPrepareRequest request) {
+    public PaymentPrepareResponse preparePayment(PaymentPrepareRequest request, String idempotencyKey) {
         Long userId = request.getUserId();
         Long merchantId = request.getMerchantId();
-        int amount = request.getAmount();
-        String orderId = generateOrderId(merchantId);
+        java.math.BigDecimal amount = request.getAmount();
 
-        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
-        Merchant merchant = merchantRepository.findById(merchantId).orElseThrow(() -> new MerchantNotFoundException("가맹점을 찾을 수 없습니다."));
-
-        String merchantName = merchant.getMerchantName();
+        Wallet wallet = walletRepository.findByUserId(userId)
+                .orElseThrow(() -> new UserNotFoundException("사용자의 지갑 정보를 찾을 수 없습니다."));
+        Merchant merchant = merchantRepository.findById(merchantId)
+                .orElseThrow(() -> new MerchantNotFoundException("가맹점을 찾을 수 없습니다."));
 
         Payment payment = Payment.builder()
-                .user(user)
+                .wallet(wallet)
                 .merchant(merchant)
                 .status(PaymentStatus.READY)
                 .amount(amount)
-                .orderId(orderId)
+                .orderId(idempotencyKey)
                 .build();
 
         paymentRepository.save(payment);
 
-        return PaymentPrepareResponse.from(merchantName, amount, orderId);
+        return PaymentPrepareResponse.from(payment);
 
     }
 
-    private String generateOrderId(Long merchantId) {
-        String orderId = merchantId +"_ORDER_" + UUID.randomUUID();
-        return orderId;
+    public com.practice.paymentassignment.dto.PaymentInfoResponse getPaymentInfo(Long paymentId) {
+        Payment payment = paymentRepository.findByIdWithMerchant(paymentId)
+                .orElseThrow(() -> new PaymentNotFoundException("존재하지 않는 주문 번호입니다."));
+        return com.practice.paymentassignment.dto.PaymentInfoResponse.from(payment);
     }
 }
