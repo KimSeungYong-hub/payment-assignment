@@ -1,8 +1,16 @@
 package com.practice.paymentassignment.dto;
 
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 import java.io.Serializable;
 
-public record IdempotencyRedisResponse (
-         int status,
-         byte[] body) implements Serializable {}
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+public class IdempotencyRedisResponse implements Serializable {
+    private int status;
+    private byte[] body;
+}
