@@ -96,7 +96,6 @@ public class PaymentServiceConcurrencyTest {
                 .build());
 
         Payment payment2 = paymentRepository.save(Payment.builder()
-                .wallet(testWallet)
                 .merchant(testMerchant)
                 .amount(new BigDecimal("10000"))
                 .status(PaymentStatus.READY)

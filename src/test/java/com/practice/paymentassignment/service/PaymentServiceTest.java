@@ -1,21 +1,15 @@
 package com.practice.paymentassignment.service;
 
 import com.practice.paymentassignment.dto.PaymentRequest;
-import com.practice.paymentassignment.entity.Merchant;
-import com.practice.paymentassignment.entity.Payment;
-import com.practice.paymentassignment.entity.PaymentStatus;
-import com.practice.paymentassignment.entity.Wallet;
-import com.practice.paymentassignment.entity.User;
-import com.practice.paymentassignment.repository.MerchantRepository;
-import com.practice.paymentassignment.repository.PaymentRepository;
-import com.practice.paymentassignment.repository.UserRepository;
-import com.practice.paymentassignment.repository.WalletRepository;
+import com.practice.paymentassignment.entity.*;
+import com.practice.paymentassignment.repository.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -33,6 +27,9 @@ public class PaymentServiceTest {
 
     @Mock
     private PaymentRepository paymentRepository;
+
+    @Mock
+    private PaymentRequestRepository paymentRequestRepository;
 
     @Mock
     private UserRepository userRepository;
@@ -55,17 +52,14 @@ public class PaymentServiceTest {
                 .balance(new BigDecimal("15000"))
                 .build();
         Merchant merchant = Merchant.builder()
-                .id(1L)
                 .merchantName("test_merchant")
                 .build();
-        Payment payment = Payment.builder()
-                .wallet(wallet)
-                .amount(new BigDecimal("10000"))
-                .status(PaymentStatus.READY)
+
+        PaymentRequestEntity paymentRequest = PaymentRequestEntity.builder()
                 .merchant(merchant)
                 .build();
 
-        given(paymentRepository.findByIdWithPessimisticLock(anyLong())).willReturn(Optional.of(payment));
+        given(paymentRequestRepository.findByIdWithPessimisticLock(anyLong())).willReturn(Optional.of(paymentRequest));
         given(walletRepository.findByIdWithPessimisticLock(anyLong())).willReturn(Optional.of(wallet));
 
         // when
@@ -73,7 +67,7 @@ public class PaymentServiceTest {
 
         // then
         assertThat(wallet.getBalance()).isEqualByComparingTo("5000");
-        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.SUCCESS);
+        assertThat(paymentRequest.getStatus()).isEqualTo(PaymentRequestStatus.SUCCESS);
     }
 
     @Test
@@ -83,15 +77,18 @@ public class PaymentServiceTest {
         PaymentRequest request = new PaymentRequest(999L, 1L, 1L, new BigDecimal("10000")); // user 999
         User correctUser = new User(1L, "Tester");
         Wallet correctWallet = Wallet.builder().id(1L).user(correctUser).balance(new BigDecimal("10000")).build();
-        Merchant merchant = Merchant.builder().id(1L).build();
-        Payment payment = Payment.builder()
-                .wallet(correctWallet)
+
+        Merchant merchant = Merchant.builder()
+                .merchantName("test_merchant")
+                .build();
+        ReflectionTestUtils.setField(merchant, "id", 1L);
+
+        PaymentRequestEntity paymentRequest = PaymentRequestEntity.builder()
                 .merchant(merchant)
-                .amount(new BigDecimal("10000"))
-                .status(PaymentStatus.READY)
+
                 .build();
 
-        given(paymentRepository.findByIdWithPessimisticLock(anyLong())).willReturn(Optional.of(payment));
+        given(paymentRequestRepository.findByIdWithPessimisticLock(anyLong())).willReturn(Optional.of(paymentRequest));
 
         // when & then
         final IllegalArgumentException exception = assertThrows(
@@ -107,16 +104,20 @@ public class PaymentServiceTest {
         // given
         PaymentRequest request = new PaymentRequest(1L, 1L, 1L, new BigDecimal("1")); // 1원으로 조작
         User user = new User(1L, "Tester");
-        Wallet wallet = Wallet.builder().id(1L).user(user).balance(new BigDecimal("10000")).build();
-        Merchant merchant = Merchant.builder().id(1L).build();
-        Payment payment = Payment.builder()
-                .wallet(wallet)
+//        Wallet wallet = Wallet.builder().id(1L).user(user).balance(new BigDecimal("10000")).build();
+
+        Merchant merchant = Merchant.builder()
+                .merchantName("test_merchant")
+                .build();
+        ReflectionTestUtils.setField(merchant, "id", 1L);
+
+        PaymentRequestEntity paymentRequest = PaymentRequestEntity.builder()
                 .merchant(merchant)
-                .amount(new BigDecimal("10000")) // 진짜 원장 가격은 10000원
-                .status(PaymentStatus.READY)
+                .orderId("test_order_Key")
+                .totalAmount(new BigDecimal("10000")) // 진짜 원장 가격은 10000원
                 .build();
 
-        given(paymentRepository.findByIdWithPessimisticLock(anyLong())).willReturn(Optional.of(payment));
+        given(paymentRequestRepository.findByIdWithPessimisticLock(anyLong())).willReturn(Optional.of(paymentRequest));
 
         // when & then
         final IllegalArgumentException exception = assertThrows(
@@ -137,15 +138,21 @@ public class PaymentServiceTest {
                 .user(user)
                 .balance(new BigDecimal("5000")) // 잔고 5000원 뿐
                 .build();
-        Merchant merchant = Merchant.builder().id(1L).build();
-        Payment payment = Payment.builder()
-                .wallet(wallet)
+
+        Merchant merchant = Merchant.builder()
+                .merchantName("test_merchant")
+                .build();
+        ReflectionTestUtils.setField(merchant, "id", 1L);
+
+        PaymentRequestEntity paymentRequestEntity = PaymentRequestEntity.builder()
                 .merchant(merchant)
-                .amount(new BigDecimal("10000"))
-                .status(PaymentStatus.READY)
+                .orderId("test_order_Key")
+                .totalAmount(new BigDecimal("10000"))
                 .build();
 
-        given(paymentRepository.findByIdWithPessimisticLock(anyLong())).willReturn(Optional.of(payment));
+        Payment payment = Payment.createSuccess(paymentRequestEntity, user, new BigDecimal("10000"));
+
+        given(paymentRequestRepository.findByIdWithPessimisticLock(anyLong())).willReturn(Optional.of(paymentRequestEntity));
         given(walletRepository.findByIdWithPessimisticLock(anyLong())).willReturn(Optional.of(wallet));
 
         // when & then
@@ -164,8 +171,15 @@ public class PaymentServiceTest {
         Payment payment = Payment.builder()
                 .status(PaymentStatus.SUCCESS) // 이미 승인됨
                 .build();
+        PaymentRequestEntity paymentRequest = PaymentRequestEntity.builder()
+                .orderId("test_order_Key")
+                .totalAmount(new BigDecimal("10000")) // 진짜 원장 가격은 10000원
+                .build();
+        paymentRequest.markAsDone();
 
-        given(paymentRepository.findByIdWithPessimisticLock(anyLong())).willReturn(Optional.of(payment));
+
+
+        given(paymentRequestRepository.findByIdWithPessimisticLock(anyLong())).willReturn(Optional.of(paymentRequest));
 
         // when & then
         final RuntimeException exception = assertThrows(
