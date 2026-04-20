@@ -67,7 +67,7 @@ public class IdempotencyFilterTest {
         String redisKey = "POST:/sft/approve:" + idempotencyKey;
 
         // 실제 컨트롤러가 반환하는 PaymentApproveResponse 형태로 캐시 세팅
-        com.practice.paymentassignment.dto.PaymentApproveResponse mockResponse = com.practice.paymentassignment.dto.PaymentApproveResponse.from(true, "결제가 완료되었습니다.");
+        com.practice.paymentassignment.dto.PaymentApproveResponse mockResponse = com.practice.paymentassignment.dto.PaymentApproveResponse.of(true, "결제가 완료되었습니다.");
         IdempotencyRedisResponse cachedResponse = new IdempotencyRedisResponse(
                 200, objectMapper.writeValueAsBytes(mockResponse)
         );

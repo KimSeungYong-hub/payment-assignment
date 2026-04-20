@@ -18,11 +18,16 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 @RequiredArgsConstructor
-// @WebFilter(urlPatterns = "/sft/approve")
 public class IdempotencyFilter extends OncePerRequestFilter {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private static final Duration TTL = Duration.ofHours(24);
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        return !path.equals("/sft/prepare") && !path.equals("/sft/approve");
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
@@ -30,7 +35,7 @@ public class IdempotencyFilter extends OncePerRequestFilter {
         String key = req.getHeader("Idempotency-Key");
         if (isWriteMethod(req) && key != null) {
             String redisKey = req.getMethod() + ":" + req.getRequestURI() + ":" + key;
-
+            //저장 성공 시 (기존에 키가 없었음): 1 , 저장 실패 시 (기존에 키가 있었음): 0
             Boolean isFirstRequest = redisTemplate.opsForValue().setIfAbsent(redisKey, "PROGRESSING", TTL);
 
             if (Boolean.FALSE.equals(isFirstRequest)) {
@@ -57,10 +62,17 @@ public class IdempotencyFilter extends OncePerRequestFilter {
             try {
                 chain.doFilter(req, resp);
             } finally {
-                IdempotencyRedisResponse value = new IdempotencyRedisResponse(resp.getStatus(),
-                        resp.getContentAsByteArray());
-                redisTemplate.opsForValue().set(redisKey, value, TTL);
-                resp.copyBodyToResponse();
+                int status = resp.getStatus();
+
+                if (status >= 500) {
+                    // 5xx (서버 에러, DB 다운 등) -> 락 삭제 (캐싱 X, 재시도 허용)
+                    redisTemplate.delete(redisKey);
+                } else {
+                    // 🌟 2xx (완전 성공) OR 4xx (잔액 부족 등 클라이언트 에러) -> 캐싱 (O)
+                    IdempotencyRedisResponse value = new IdempotencyRedisResponse(status, resp.getContentAsByteArray());
+                    redisTemplate.opsForValue().set(redisKey, value, TTL);
+                }
+
             }
         } else {
             chain.doFilter(req, res);
