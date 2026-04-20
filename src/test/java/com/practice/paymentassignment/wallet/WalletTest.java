@@ -1,4 +1,4 @@
-package com.practice.paymentassignment.user;
+package com.practice.paymentassignment.wallet;
 
 import com.practice.paymentassignment.entity.Wallet;
 import com.practice.paymentassignment.entity.User;
@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class UserTest {
+public class WalletTest {
 
     @Test
     @DisplayName("지갑 잔액이 결제 금액보다 적은 경우 예외 발생")

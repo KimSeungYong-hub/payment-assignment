@@ -30,10 +30,14 @@ public class Wallet {
         this.balance = balance;
     }
 
-    public void pay(BigDecimal amount) {
+    public boolean pay(BigDecimal amount) {
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("결제 금액은 0원보다 커야 합니다.");
+        }
         if (this.balance.compareTo(amount) < 0) {
-            throw new IllegalArgumentException("잔액이 부족합니다.");
+            return false;
         }
         this.balance = this.balance.subtract(amount);
+        return true;
     }
 }

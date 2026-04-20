@@ -21,7 +21,7 @@ public interface WalletRepository extends JpaRepository<Wallet, Long> {
     Optional<Wallet> findByUserIdWithPessimisticLock(@Param("userId") Long userId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @QueryHints({@QueryHint(name = "jakarta.persistence.lock.timeout", value = "3000")})
+//    @QueryHints({@QueryHint(name = "jakarta.persistence.lock.timeout", value = "3000")})
     @Query("SELECT w FROM Wallet w WHERE w.id = :id")
     Optional<Wallet> findByIdWithPessimisticLock(@Param("id") Long id);
 
