@@ -10,6 +10,5 @@ import java.math.BigDecimal;
 public class PaymentPrepareRequest {
     private final Long userId;
     private final Long merchantId;
-    private final BigDecimal amount;
 
 }

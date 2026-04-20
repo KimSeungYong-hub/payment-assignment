@@ -6,6 +6,7 @@ import com.practice.paymentassignment.dto.PaymentRequest;
 import com.practice.paymentassignment.dto.PaymentApproveResponse;
 import com.practice.paymentassignment.service.PaymentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +26,11 @@ public class PaymentController {
     @PostMapping("/approve")
     public ResponseEntity<PaymentApproveResponse> approvePayment(@RequestBody PaymentRequest request) {
         PaymentApproveResponse response = paymentService.requestPayment(request);
+
+        if (!response.isSuccess()) {
+            // 비즈니스 실패 (잔액 부족 등) -> HTTP 400 상태 코드로 반환!
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
         return ResponseEntity.ok(response);
     }
 

@@ -2,6 +2,7 @@ package com.practice.paymentassignment.dto;
 
 import com.practice.paymentassignment.entity.Payment;
 
+import com.practice.paymentassignment.entity.PaymentRequestEntity;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -14,8 +15,8 @@ public class PaymentPrepareResponse {
     private final BigDecimal amount;
     private final Long paymentId;
 
-    public static PaymentPrepareResponse from(Payment payment) {
-        return new PaymentPrepareResponse(payment.getMerchant().getMerchantName(), payment.getAmount(),
-                payment.getId());
+    public static PaymentPrepareResponse from(PaymentRequestEntity paymentRequest) {
+        return new PaymentPrepareResponse(paymentRequest.getMerchant().getMerchantName(), paymentRequest.getTotalAmount(),
+                paymentRequest.getId());
     }
 }
