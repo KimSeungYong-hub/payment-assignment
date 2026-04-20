@@ -14,10 +14,5 @@ import java.util.Optional;
 
 @Repository
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT p FROM Payment p WHERE p.id = :id")
-    Optional<Payment> findByIdWithPessimisticLock(@Param("id") Long id);
 
-    @Query("SELECT p FROM Payment p JOIN FETCH p.merchant WHERE p.id = :id")
-    Optional<Payment> findByIdWithMerchant(@Param("id") Long id);
 }

@@ -9,7 +9,7 @@ public class PaymentApproveResponse {
     private final boolean isSuccess;
     private final String message;
 
-    public static PaymentApproveResponse from(boolean isSuccess, String message) {
+    public static PaymentApproveResponse of(boolean isSuccess, String message) {
         return new PaymentApproveResponse(isSuccess, message);
     }
 }

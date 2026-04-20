@@ -1,5 +1,6 @@
 package com.practice.paymentassignment.entity;
 
+import com.practice.paymentassignment.dto.PaymentRequest;
 import jakarta.persistence.*;
 import jdk.jshell.Snippet;
 import lombok.AccessLevel;
@@ -10,6 +11,7 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -22,13 +24,15 @@ public class Payment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // 어떤 청구서에 대한 결제인가? (다대일 관계)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "merchant_id")
-    private Merchant merchant;
+    @JoinColumn(name = "payment_request_id", nullable = false)
+    private PaymentRequestEntity paymentRequest;
 
+    // 누가 결제했는가? (다대일 관계)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "wallet_id", nullable = false)
-    private Wallet wallet;
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @Column(precision = 19, scale = 2)
     private BigDecimal amount;
@@ -36,28 +40,48 @@ public class Payment {
     @Enumerated(EnumType.STRING)
     private PaymentStatus status;
 
-    @Column(unique = true)
-    private String orderId;
+    @Column(name = "fail_reason", length = 500)
+    private String failReason;
 
     @CreatedDate
+//    @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime dateTime;
 
     @Builder
-    public Payment(Merchant merchant, BigDecimal amount, Wallet wallet, PaymentStatus status, String orderId) {
-        this.merchant = merchant;
+    public Payment(BigDecimal amount, PaymentStatus status, User user, PaymentRequestEntity paymentRequestEntity, String failReason) {
         this.amount = amount;
-        this.wallet = wallet;
         this.status = status;
-        this.orderId = orderId;
+        this.paymentRequest = paymentRequestEntity;
+        this.user = user;
+        this.failReason = failReason;
     }
 
-    public void complete() {
-        this.status = PaymentStatus.SUCCESS;
+    public static Payment createSuccess(PaymentRequestEntity paymentRequestEntity, User user, BigDecimal amount) {
+        return Payment.builder()
+                .paymentRequestEntity(paymentRequestEntity)
+                .user(user)
+                .amount(amount)
+                .status(PaymentStatus.SUCCESS)
+                .build();
     }
 
-    public void cancel() {
-        this.status = PaymentStatus.CANCELED;
+    public static Payment createFail(PaymentRequestEntity paymentRequestEntity, User user, BigDecimal amount, String reason) {
+        return Payment.builder()
+                .paymentRequestEntity(paymentRequestEntity)
+                .user(user)
+                .amount(amount)
+                .status(PaymentStatus.FAIL)
+                .failReason(reason)
+                .build();
     }
+
+//    public void complete() {
+//        this.status = PaymentStatus.SUCCESS;
+//    }
+//
+//    public void cancel() {
+//        this.status = PaymentStatus.FAIL;
+//    }
 
 }
