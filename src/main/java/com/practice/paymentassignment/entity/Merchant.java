@@ -1,13 +1,12 @@
 package com.practice.paymentassignment.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
 
 @Getter
 @Entity
@@ -19,9 +18,12 @@ public class Merchant {
 
     private String merchantName;
 
+    @Column(precision = 19, scale = 2)
+    private BigDecimal amount;
+
     @Builder
-    public Merchant(Long id, String merchantName) {
-        this.id = id;
+    public Merchant(String merchantName) {
         this.merchantName = merchantName;
+        this.amount = BigDecimal.valueOf(10000);
     }
 }
