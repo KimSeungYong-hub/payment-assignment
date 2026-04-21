@@ -19,13 +19,15 @@ public class PaymentController {
     @PostMapping("/prepare")
     public ResponseEntity<PaymentPrepareResponse> preparePayment(@RequestBody PaymentPrepareRequest request,
             @RequestHeader(value = "Idempotency-Key") String idempotencyKey) {
+        Long userId = 1L;
         PaymentPrepareResponse response = paymentService.preparePayment(request, idempotencyKey);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/approve")
     public ResponseEntity<PaymentApproveResponse> approvePayment(@RequestBody PaymentRequest request) {
-        PaymentApproveResponse response = paymentService.requestPayment(request);
+        Long userId = 1L;
+        PaymentApproveResponse response = paymentService.requestPayment(request, userId);
 
         if (!response.isSuccess()) {
             // 비즈니스 실패 (잔액 부족 등) -> HTTP 400 상태 코드로 반환!

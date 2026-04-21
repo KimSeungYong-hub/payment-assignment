@@ -17,7 +17,9 @@ public enum ErrorCode {
     MERCHANT_NOT_FOUND(HttpStatus.NOT_FOUND, "M001", "Merchant not found"),
 
     // Payment
-    PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "P001", "Payment not found");
+    PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "P001", "Payment not found"),
+
+    WALLET_NOT_FOUND(HttpStatus.NOT_FOUND, "W001", "Wallet not found");
 
     private final HttpStatus status;
     private final String code;

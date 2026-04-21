@@ -75,7 +75,7 @@ public class IdempotencyFilterTest {
 
         // 실제 PaymentRequest 객체 생성
         com.practice.paymentassignment.dto.PaymentRequest requestDto = 
-                new com.practice.paymentassignment.dto.PaymentRequest(1L, 1L, 1L, new java.math.BigDecimal("10000.00"));
+                new com.practice.paymentassignment.dto.PaymentRequest(1L, 1L, new java.math.BigDecimal("10000.00"));
 
         // when & then
         mockMvc.perform(post("/sft/approve")

@@ -44,8 +44,9 @@ public class PaymentServiceTest {
     @DisplayName("결제가 성공하면 유저 잔액이 깎이고 결제 내역이 저장되어야 한다.")
     void requestPayment_Success(){
         // given
-        PaymentRequest request = new PaymentRequest(1L, 1L, 1L, new BigDecimal("10000"));
+        PaymentRequest request = new PaymentRequest( 1L, 1L, new BigDecimal("10000"));
         User user = new User(1L, "Tester");
+        Long userId = user.getId();
         Wallet wallet = Wallet.builder()
                 .id(1L)
                 .user(user)
@@ -54,16 +55,18 @@ public class PaymentServiceTest {
         Merchant merchant = Merchant.builder()
                 .merchantName("test_merchant")
                 .build();
+        ReflectionTestUtils.setField(merchant, "id", 1L);
 
         PaymentRequestEntity paymentRequest = PaymentRequestEntity.builder()
                 .merchant(merchant)
+                .totalAmount(new BigDecimal("10000"))
                 .build();
 
         given(paymentRequestRepository.findByIdWithPessimisticLock(anyLong())).willReturn(Optional.of(paymentRequest));
         given(walletRepository.findByIdWithPessimisticLock(anyLong())).willReturn(Optional.of(wallet));
-
+        given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
         // when
-        paymentService.requestPayment(request);
+        paymentService.requestPayment(request, userId);
 
         // then
         assertThat(wallet.getBalance()).isEqualByComparingTo("5000");
@@ -74,8 +77,10 @@ public class PaymentServiceTest {
     @DisplayName("결제 요청자와 주문자가 다를 경우 예외 발생")
     void requestPayment_Fail_InvalidUser(){
         // given
-        PaymentRequest request = new PaymentRequest(999L, 1L, 1L, new BigDecimal("10000")); // user 999
+        PaymentRequest request = new PaymentRequest(999L, 1L, new BigDecimal("10000")); // user 999
         User correctUser = new User(1L, "Tester");
+        Long userId = correctUser.getId();
+
         Wallet correctWallet = Wallet.builder().id(1L).user(correctUser).balance(new BigDecimal("10000")).build();
 
         Merchant merchant = Merchant.builder()
@@ -89,11 +94,12 @@ public class PaymentServiceTest {
                 .build();
 
         given(paymentRequestRepository.findByIdWithPessimisticLock(anyLong())).willReturn(Optional.of(paymentRequest));
+        given(userRepository.findById(anyLong())).willReturn(Optional.of(correctUser));
 
         // when & then
         final IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> paymentService.requestPayment(request)
+                () -> paymentService.requestPayment(request, userId)
         );
         assertThat(exception.getMessage()).contains("결제 요청자와 주문자가 일치하지 않습니다.");
     }
@@ -102,8 +108,9 @@ public class PaymentServiceTest {
     @DisplayName("결제 요청 금액이 원장 금액과 다를 경우 (위변조 시도) 예외 발생")
     void requestPayment_Fail_InvalidAmount(){
         // given
-        PaymentRequest request = new PaymentRequest(1L, 1L, 1L, new BigDecimal("1")); // 1원으로 조작
+        PaymentRequest request = new PaymentRequest(1L, 1L, new BigDecimal("1")); // 1원으로 조작
         User user = new User(1L, "Tester");
+        Long userId = user.getId();
 //        Wallet wallet = Wallet.builder().id(1L).user(user).balance(new BigDecimal("10000")).build();
 
         Merchant merchant = Merchant.builder()
@@ -122,7 +129,7 @@ public class PaymentServiceTest {
         // when & then
         final IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> paymentService.requestPayment(request)
+                () -> paymentService.requestPayment(request, userId)
         );
         assertThat(exception.getMessage()).contains("결제 요청 금액이 실제 주문 금액과 일치하지 않습니다");
     }
@@ -131,8 +138,10 @@ public class PaymentServiceTest {
     @DisplayName("유저 잔액이 부족할 경우 차감 시 예외 발생")
     void requestPayment_Fail_InsufficientBalance(){
         // given
-        PaymentRequest request = new PaymentRequest(1L, 1L, 1L, new BigDecimal("10000"));
+        PaymentRequest request = new PaymentRequest(1L, 1L, new BigDecimal("10000"));
         User user = new User(1L, "Tester");
+        Long userId = user.getId();
+
         Wallet wallet = Wallet.builder()
                 .id(1L)
                 .user(user)
@@ -158,7 +167,7 @@ public class PaymentServiceTest {
         // when & then
         final RuntimeException exception = assertThrows(
                 RuntimeException.class,
-                () -> paymentService.requestPayment(request)
+                () -> paymentService.requestPayment(request, userId)
         );
         assertThat(exception.getMessage()).contains("잔액이 부족");
     }
@@ -167,7 +176,10 @@ public class PaymentServiceTest {
     @DisplayName("이미 처리된 결제(SUCCESS)를 다시 처리하려고 하면 예외 발생")
     void requestPayment_Fail_AlreadyProcessed(){
         // given
-        PaymentRequest request = new PaymentRequest(1L, 1L, 1L, new BigDecimal("10000"));
+        PaymentRequest request = new PaymentRequest(1L, 1L, new BigDecimal("10000"));
+        User user = new User(1L, "Tester");
+        Long userId = user.getId();
+
         Payment payment = Payment.builder()
                 .status(PaymentStatus.SUCCESS) // 이미 승인됨
                 .build();
@@ -184,7 +196,7 @@ public class PaymentServiceTest {
         // when & then
         final RuntimeException exception = assertThrows(
                 RuntimeException.class,
-                () -> paymentService.requestPayment(request)
+                () -> paymentService.requestPayment(request, userId)
         );
         assertThat(exception.getMessage()).contains("이미 처리 중이거나 완료된 주문");
     }

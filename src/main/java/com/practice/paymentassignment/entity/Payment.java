@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -46,7 +47,7 @@ public class Payment {
     @CreatedDate
 //    @CreationTimestamp
     @Column(nullable = false, updatable = false)
-    private LocalDateTime dateTime;
+    private Instant dateTime;
 
     @Builder
     public Payment(BigDecimal amount, PaymentStatus status, User user, PaymentRequestEntity paymentRequestEntity, String failReason) {

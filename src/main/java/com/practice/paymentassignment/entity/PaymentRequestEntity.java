@@ -39,6 +39,9 @@ public class PaymentRequestEntity {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime expiredAt;
+
     @Builder
     public PaymentRequestEntity(Merchant merchant, String orderId, BigDecimal totalAmount) {
         this.merchant = merchant;
@@ -53,5 +56,21 @@ public class PaymentRequestEntity {
 //            throw new IllegalStateException("이미 처리 완료된 결제 요청입니다.");
 //        }
         this.status = PaymentRequestStatus.SUCCESS;
+    }
+
+    public boolean isExpired() {
+        if (this.status == PaymentRequestStatus.EXPIRED) {
+            return true;
+        }
+
+        if (this.expiredAt != null && LocalDateTime.now().isAfter(this.expiredAt)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public void markAsExpired() {
+        this.status = PaymentRequestStatus.EXPIRED;
     }
 }
