@@ -13,8 +13,26 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class WalletTest {
 
     @Test
-    @DisplayName("지갑 잔액이 결제 금액보다 적은 경우 예외 발생")
-     void pay_Fali(){
+    @DisplayName("지갑 잔액이 결제 금액보다 적은 경우 false를 반환한다.")
+    void pay_FailsDueToBalance() {
+        // given
+        User user = new User(1L, "Tester");
+        Wallet wallet = Wallet.builder()
+                .user(user)
+                .balance(new BigDecimal("9000"))
+                .build();
+
+        // when
+        boolean result = wallet.pay(new BigDecimal("10000"));
+
+        // then
+        assertThat(result).isFalse();
+        assertThat(wallet.getBalance()).isEqualByComparingTo("9000"); // 잔액 불변 확인
+    }
+
+    @Test
+    @DisplayName("결제 금액이 0원 이하인 경우 IllegalArgumentException 발생")
+    void pay_FailsDueToInvalidAmount() {
         // given
         User user = new User(1L, "Tester");
         Wallet wallet = Wallet.builder()
@@ -23,11 +41,8 @@ public class WalletTest {
                 .build();
 
         // when & then
-        final IllegalArgumentException exception = assertThrows(
-                IllegalArgumentException.class,
-                () -> wallet.pay(new BigDecimal("10000"))
-        );
-        assertThat(exception.getMessage()).contains("잔액이 부족합니다");
+        assertThrows(IllegalArgumentException.class, () -> wallet.pay(BigDecimal.ZERO));
+        assertThrows(IllegalArgumentException.class, () -> wallet.pay(new BigDecimal("-100")));
     }
 
     @Test

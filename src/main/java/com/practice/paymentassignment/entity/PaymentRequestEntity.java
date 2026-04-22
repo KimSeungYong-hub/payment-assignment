@@ -1,18 +1,20 @@
 package com.practice.paymentassignment.entity;
 
-import com.practice.paymentassignment.entity.Merchant;
-import com.practice.paymentassignment.entity.PaymentRequestStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Getter
+@Table(name = "payment_requests")
+@EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED) // JPA 기본 생성자는 Protected로 막아둠
 public class PaymentRequestEntity {
 
@@ -29,18 +31,19 @@ public class PaymentRequestEntity {
     @Column(name = "merchant_order_id", nullable = false, unique = true)
     private String orderId;
 
-    @Column(name = "total_amount", nullable = false)
+    @Column(name = "total_amount", precision = 19, scale = 0, nullable = false)
     private BigDecimal totalAmount;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private PaymentRequestStatus status;
 
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
+    @CreatedDate
+    @Column(name = "created_at", updatable = false, nullable = false)
+    private Instant createdAt;
 
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime expiredAt;
+    @Column(name = "expired_at")
+    private Instant expiredAt;
 
     @Builder
     public PaymentRequestEntity(Merchant merchant, String orderId, BigDecimal totalAmount) {
@@ -48,13 +51,10 @@ public class PaymentRequestEntity {
         this.orderId = orderId;
         this.totalAmount = totalAmount;
         this.status = PaymentRequestStatus.READY; // 최초 생성 시 무조건 대기 상태
-        this.createdAt = LocalDateTime.now();
+        this.expiredAt = Instant.now().plusSeconds(60 * 10); // 10분 후 만료
     }
 
     public void markAsDone() {
-//        if (this.status == PaymentRequestStatus.SUCCESS) {
-//            throw new IllegalStateException("이미 처리 완료된 결제 요청입니다.");
-//        }
         this.status = PaymentRequestStatus.SUCCESS;
     }
 
@@ -63,7 +63,7 @@ public class PaymentRequestEntity {
             return true;
         }
 
-        if (this.expiredAt != null && LocalDateTime.now().isAfter(this.expiredAt)) {
+        if (this.expiredAt != null && Instant.now().isAfter(this.expiredAt)) {
             return true;
         }
 

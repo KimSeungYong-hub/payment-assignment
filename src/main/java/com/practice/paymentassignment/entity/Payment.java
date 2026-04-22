@@ -1,6 +1,5 @@
 package com.practice.paymentassignment.entity;
 
-import com.practice.paymentassignment.dto.PaymentRequest;
 import jakarta.persistence.*;
 import jdk.jshell.Snippet;
 import lombok.AccessLevel;
@@ -10,7 +9,6 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.data.annotation.CreatedDate;
@@ -18,6 +16,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Getter
 @Entity
+@Table(name = "payments")
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Payment {
@@ -35,7 +34,7 @@ public class Payment {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(precision = 19, scale = 2)
+    @Column(name = "amount", precision = 19, scale = 0, nullable = false)
     private BigDecimal amount;
 
     @Enumerated(EnumType.STRING)

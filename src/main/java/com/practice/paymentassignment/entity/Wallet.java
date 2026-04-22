@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 
 @Getter
 @Entity
+@Table(name = "wallets")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Wallet {
     @Id
@@ -20,12 +21,11 @@ public class Wallet {
     @JoinColumn(name = "user_id", unique = true, nullable = false)
     private User user;
 
-    @Column(precision = 19, scale = 2, nullable = false)
+    @Column(precision = 19, scale = 0, nullable = false)
     private BigDecimal balance;
 
     @Builder
-    public Wallet(Long id, User user, BigDecimal balance) {
-        this.id = id;
+    public Wallet(User user, BigDecimal balance) {
         this.user = user;
         this.balance = balance;
     }

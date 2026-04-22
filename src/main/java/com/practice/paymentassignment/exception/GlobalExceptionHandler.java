@@ -1,6 +1,8 @@
 package com.practice.paymentassignment.exception;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -8,6 +10,16 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    /**
+     * DB 제약 조건 위반 (중복 키 등) 처리
+     */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    protected ResponseEntity<ErrorResponse> handleDataIntegrityViolationException(DataIntegrityViolationException e) {
+        log.error("handleDataIntegrityViolationException", e);
+        ErrorResponse response = ErrorResponse.of(ErrorCode.DATA_INTEGRITY_VIOLATION, "이미 존재하는 주문 번호 또는 잘못된 데이터 요청입니다.");
+        return new ResponseEntity<>(response, ErrorCode.DATA_INTEGRITY_VIOLATION.getStatus());
+    }
 
     /**
      * 비즈니스 로직 예외 처리

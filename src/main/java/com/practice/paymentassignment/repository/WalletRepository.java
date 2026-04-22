@@ -16,14 +16,12 @@ import java.util.Optional;
 public interface WalletRepository extends JpaRepository<Wallet, Long> {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @QueryHints({@QueryHint(name = "jakarta.persistence.lock.timeout", value = "3000")})
     @Query("SELECT w FROM Wallet w WHERE w.user.id = :userId")
     Optional<Wallet> findByUserIdWithPessimisticLock(@Param("userId") Long userId);
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-//    @QueryHints({@QueryHint(name = "jakarta.persistence.lock.timeout", value = "3000")})
-    @Query("SELECT w FROM Wallet w WHERE w.id = :id")
-    Optional<Wallet> findByIdWithPessimisticLock(@Param("id") Long id);
+    // @Lock(LockModeType.PESSIMISTIC_WRITE)
+    // @Query("SELECT w FROM Wallet w WHERE w.id = :id")
+    // Optional<Wallet> findByIdWithPessimisticLock(@Param("id") Long id);
 
     @Query("SELECT w FROM Wallet w WHERE w.user.id = :userId")
     Optional<Wallet> findByUserId(@Param("userId") Long userId);

@@ -18,6 +18,7 @@ public enum ErrorCode {
 
     // Payment
     PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "P001", "Payment not found"),
+    PAYMENT_FORGERY(HttpStatus.BAD_REQUEST, "P005", "결제 위변조 시도가 감지되었습니다."),
 
     WALLET_NOT_FOUND(HttpStatus.NOT_FOUND, "W001", "Wallet not found");
 
