@@ -26,7 +26,7 @@ public class PaymentController {
         PaymentDto.Approve.Response response = paymentService.requestPayment(request, userId);
 
         if (!response.isSuccess()) {
-            // 비즈니스 실패 (잔액 부족 등) -> HTTP 400 상태 코드로 반환!
+            // 비즈니스 실패 (잔액 부족 등) -> HTTP 400 상태 코드로 반환
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
         return ResponseEntity.ok(response);

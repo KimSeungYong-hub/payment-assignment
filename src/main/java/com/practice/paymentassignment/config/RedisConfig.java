@@ -35,15 +35,12 @@ public class RedisConfig {
         return config;
     }
 
-    @Primary
     @Bean("redisConnectionFactory")
-    @DependsOn("redisConfiguration")
     public RedisConnectionFactory lettuceConnectionFactory(final RedisConfiguration redisConfiguration) {
         return new LettuceConnectionFactory(redisConfiguration);
     }
 
     @Bean
-    @DependsOn("redisConnectionFactory")
     public RedisTemplate<String, Object> redisTemplate(
             final RedisConnectionFactory redisConnectionFactory,
             final ObjectMapper objectMapper
@@ -52,7 +49,7 @@ public class RedisConfig {
 
         redisTemplate.setConnectionFactory(redisConnectionFactory);
         redisTemplate.setKeySerializer(new StringRedisSerializer());
-        redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer(objectMapper));
         redisTemplate.afterPropertiesSet();
 
         return redisTemplate;

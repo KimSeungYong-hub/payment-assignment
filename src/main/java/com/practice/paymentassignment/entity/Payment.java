@@ -24,12 +24,10 @@ public class Payment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 어떤 청구서에 대한 결제인가? (다대일 관계)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payment_request_id", nullable = false)
     private PaymentRequestEntity paymentRequest;
 
-    // 누가 결제했는가? (다대일 관계)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;

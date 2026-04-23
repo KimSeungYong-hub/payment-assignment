@@ -68,9 +68,6 @@ public class PaymentService {
         log.info("Preparing payment for merchantId: {}, idempotencyKey: {}", request.getMerchantId(), idempotencyKey);
         Long merchantId = request.getMerchantId();
 
-        // Wallet wallet = walletRepository.findByUserId(userId)
-        // .orElseThrow(() -> new UserNotFoundException("사용자의 지갑 정보를 찾을 수 없습니다."));
-
         Merchant merchant = merchantRepository.findById(merchantId)
                 .orElseThrow(() -> new MerchantNotFoundException("가맹점을 찾을 수 없습니다."));
         BigDecimal totalAmount = merchant.getAmount();
@@ -108,7 +105,6 @@ public class PaymentService {
         if (!paymentRequest.getStatus().equals(PaymentRequestStatus.READY)) {
             throw new AlreadyProcessedException("이미 처리 중이거나 완료된 주문입니다.");
         }
-
     }
 
     private PaymentDto.Approve.Response saveFailAndReturn(

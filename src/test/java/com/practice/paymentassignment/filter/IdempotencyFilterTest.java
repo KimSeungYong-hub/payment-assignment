@@ -5,10 +5,12 @@ import com.practice.paymentassignment.AbstractIntegrationTest;
 import com.practice.paymentassignment.dto.IdempotencyRedisResponse;
 import com.practice.paymentassignment.dto.PaymentDto;
 
+import com.practice.paymentassignment.exception.ErrorCode;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.web.servlet.MockMvc;
@@ -17,6 +19,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@SpringBootTest
 @AutoConfigureMockMvc
 public class IdempotencyFilterTest extends AbstractIntegrationTest {
 
@@ -49,7 +52,7 @@ public class IdempotencyFilterTest extends AbstractIntegrationTest {
 
         // 실제 PaymentRequest 객체 생성
         PaymentDto.Approve.Request requestDto = new PaymentDto.Approve.Request(1L, 1L,
-                new java.math.BigDecimal("10000.00"));
+                new java.math.BigDecimal("10000"));
 
         // when & then
         mockMvc.perform(post("/sft/approve")
@@ -68,6 +71,8 @@ public class IdempotencyFilterTest extends AbstractIntegrationTest {
         String idempotencyKey = "test_key_conflict";
         String redisKey = "POST:/sft/approve:" + idempotencyKey;
 
+        PaymentDto.Approve.Request requestDto = new PaymentDto.Approve.Request(1L, 1L,
+                new java.math.BigDecimal("10000"));
         // 다른 스레드에서 처리 중인 상태로 설정
         redisTemplate.opsForValue().set(redisKey, "PROGRESSING");
 
@@ -75,8 +80,9 @@ public class IdempotencyFilterTest extends AbstractIntegrationTest {
         mockMvc.perform(post("/sft/approve")
                 .header("Idempotency-Key", idempotencyKey)
                 .contentType("application/json")
-                .content("{\"paymentId\": 1}"))
+                .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.error").value("현재 동일한 요청이 처리 중입니다."));
+                .andExpect(jsonPath("$.code").value(ErrorCode.DATA_INTEGRITY_VIOLATION.getCode()))
+                .andExpect(jsonPath("$.message").value("이미 처리 중이거나 완료된 주문입니다."));
     }
 }

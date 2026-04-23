@@ -39,12 +39,11 @@ public class PaymentDto {
     // 2. 결제 승인 API 전용
     public static class Approve {
         @Getter
-        @NoArgsConstructor
-        @AllArgsConstructor
+        @RequiredArgsConstructor
         public static class Request {
-            private Long paymentId;
-            private Long merchantId;
-            private BigDecimal amount;
+            private final Long paymentId;
+            private final Long merchantId;
+            private final BigDecimal amount;
         }
 
         @Getter
