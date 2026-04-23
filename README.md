@@ -33,3 +33,4 @@
 2. Java 17
 3. Gradle
 4. PostgreSQL
+https://fast-9fc.notion.site/payment-assignment-342edfd5a476801481cef8bf58940a2b?pvs=74
