@@ -57,7 +57,7 @@ public class PaymentServiceTest {
                 when(merchantRepository.findById(1L)).thenReturn(Optional.of(merchant));
 
                 // when
-                PaymentDto.Prepare.Response response = paymentService.preparePayment(request, idempotencyKey);
+                PaymentDto.Prepare.Response response = paymentService.readyPayment(request, idempotencyKey);
 
                 // then
                 assertThat(response.getMerchantName()).isEqualTo("Test Merchant");
@@ -66,7 +66,7 @@ public class PaymentServiceTest {
 
         @Test
         @DisplayName("결제가 성공하면 유저 잔액이 깎이고 결제 내역이 저장되어야 한다.")
-        public void requestPayment_Success() {
+        public void confirmPayment_Success() {
                 // given
                 PaymentDto.Approve.Request request = new PaymentDto.Approve.Request(1L, 1L, new BigDecimal("10000"));
                 User user = new User(1L, "Tester");
@@ -91,7 +91,7 @@ public class PaymentServiceTest {
                 given(walletRepository.findByUserIdWithPessimisticLock(anyLong())).willReturn(Optional.of(wallet));
                 given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
                 // when
-                PaymentDto.Approve.Response response = paymentService.requestPayment(request, 1L);
+                PaymentDto.Approve.Response response = paymentService.confirmPayment(request, 1L);
 
                 // then
                 assertThat(response.isSuccess()).isTrue();
@@ -101,7 +101,7 @@ public class PaymentServiceTest {
 
         @Test
         @DisplayName("가맹점 정보가 일치하지 않는 경우 예외 발생")
-        public void requestPayment_Merchant_Mismatch() {
+        public void confirmPayment_Merchant_Mismatch() {
                 // given
                 PaymentDto.Approve.Request request = new PaymentDto.Approve.Request(1L, 999L, new BigDecimal("10000")); // merchant
                                                                                                                         // 999
@@ -124,13 +124,13 @@ public class PaymentServiceTest {
                 // when & then
                 final PaymentForgeryException exception = assertThrows(
                                 PaymentForgeryException.class,
-                                () -> paymentService.requestPayment(request, userId));
+                                () -> paymentService.confirmPayment(request, userId));
                 assertThat(exception.getMessage()).contains("가맹점 정보가 일치하지 않습니다");
         }
 
         @Test
         @DisplayName("결제 요청 금액이 원장 금액과 다를 경우 (위변조 시도) 예외 발생")
-        public void requestPayment_Amount_Mismatch() {
+        public void confirmPayment_Amount_Mismatch() {
                 // given
                 PaymentDto.Approve.Request request = new PaymentDto.Approve.Request(1L, 1L, new BigDecimal("1")); // 1원으로
                                                                                                                   // 조작
@@ -155,13 +155,13 @@ public class PaymentServiceTest {
                 // when & then
                 final PaymentForgeryException exception = assertThrows(
                                 PaymentForgeryException.class,
-                                () -> paymentService.requestPayment(request, userId));
+                                () -> paymentService.confirmPayment(request, userId));
                 assertThat(exception.getMessage()).contains("결제 요청 금액이 실제 주문 금액과 일치하지 않습니다");
         }
 
         @Test
         @DisplayName("유저 잔액이 부족할 경우 실패 응답을 반환하고 DB에 기록한다.")
-        public void requestPayment_Insufficient_Balance() {
+        public void confirmPayment_Insufficient_Balance() {
                 // given
                 PaymentDto.Approve.Request request = new PaymentDto.Approve.Request(1L, 1L, new BigDecimal("10000"));
                 User user = new User(1L, "Tester");
@@ -192,7 +192,7 @@ public class PaymentServiceTest {
                 given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
 
                 // when
-                PaymentDto.Approve.Response response = paymentService.requestPayment(request, userId);
+                PaymentDto.Approve.Response response = paymentService.confirmPayment(request, userId);
 
                 // then
                 assertThat(response.isSuccess()).isFalse();
@@ -201,7 +201,7 @@ public class PaymentServiceTest {
 
         @Test
         @DisplayName("이미 처리된 결제(SUCCESS)를 다시 처리하려고 하면 예외 발생")
-        void requestPayment_Fail_AlreadyProcessed() {
+        void confirmPayment_Fail_AlreadyProcessed() {
                 // given
                 PaymentDto.Approve.Request request = new PaymentDto.Approve.Request(1L, 1L, new BigDecimal("10000"));
                 User user = new User(1L, "Tester");
@@ -221,7 +221,7 @@ public class PaymentServiceTest {
                 // when & then
                 final RuntimeException exception = assertThrows(
                                 RuntimeException.class,
-                                () -> paymentService.requestPayment(request, userId));
+                                () -> paymentService.confirmPayment(request, userId));
                 assertThat(exception.getMessage()).contains("이미 처리 중이거나 완료된 주문");
         }
 }

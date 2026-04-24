@@ -60,7 +60,7 @@ public class PaymentServiceConcurrencyTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("서로 다른 두 개의 결제를 거의 동시에 요청할 경우 비관적 락으로 인해 잔액이 방어되어야 한다.")
-    void requestPayment_Concurrent_DifferentOrders() throws InterruptedException {
+    void confirmPayment_Concurrent_DifferentOrders() throws InterruptedException {
         // given
         // 사용자 잔액은 10,000원인데 10,000원짜리 결제 2개를 동시에 생성
         PaymentRequestEntity payment1 = paymentRequestRepository.save(PaymentRequestEntity.builder()
@@ -83,7 +83,7 @@ public class PaymentServiceConcurrencyTest extends AbstractIntegrationTest {
         // when
         executorService.submit(() -> {
             try {
-                PaymentDto.Approve.Response response = paymentService.requestPayment(
+                PaymentDto.Approve.Response response = paymentService.confirmPayment(
                         new PaymentDto.Approve.Request(payment1.getId(), testMerchant.getId(), new BigDecimal("10000")),
                         testUser.getId());
                 if (response.isSuccess()) {
@@ -100,7 +100,7 @@ public class PaymentServiceConcurrencyTest extends AbstractIntegrationTest {
 
         executorService.submit(() -> {
             try {
-                PaymentDto.Approve.Response response = paymentService.requestPayment(
+                PaymentDto.Approve.Response response = paymentService.confirmPayment(
                         new PaymentDto.Approve.Request(payment2.getId(), testMerchant.getId(), new BigDecimal("10000")),
                         testUser.getId());
                 if (response.isSuccess()) {
@@ -127,7 +127,7 @@ public class PaymentServiceConcurrencyTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("동일한 결제에 대해 다수의 요청이 동시에 들어와도 단 1번만 승인된다.")
-    void requestPayment_Concurrent_SameOrder() throws InterruptedException {
+    void confirmPayment_Concurrent_SameOrder() throws InterruptedException {
         // given
         PaymentRequestEntity payment = paymentRequestRepository.save(PaymentRequestEntity.builder()
                 .merchant(testMerchant)
@@ -145,7 +145,7 @@ public class PaymentServiceConcurrencyTest extends AbstractIntegrationTest {
         for (int i = 0; i < threadCount; i++) {
             executorService.submit(() -> {
                 try {
-                    PaymentDto.Approve.Response response = paymentService.requestPayment(new PaymentDto.Approve.Request(
+                    PaymentDto.Approve.Response response = paymentService.confirmPayment(new PaymentDto.Approve.Request(
                             payment.getId(), testMerchant.getId(), new BigDecimal("5000")), testUser.getId());
                     if (response.isSuccess()) {
                         successCount.incrementAndGet();

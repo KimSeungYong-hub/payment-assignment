@@ -5,6 +5,7 @@ import com.practice.paymentassignment.entity.*;
 import com.practice.paymentassignment.exception.*;
 import com.practice.paymentassignment.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.stereotype.Service;
 
 import org.slf4j.Logger;
@@ -24,24 +25,31 @@ public class PaymentService {
     private final UserRepository userRepository;
 
     @Transactional
-    public PaymentDto.Approve.Response requestPayment(PaymentDto.Approve.Request request, Long userId) {
+    public PaymentDto.Approve.Response confirmPayment(PaymentDto.Approve.Request request, Long userId) {
         log.info("Payment request received for paymentId: {}, userId: {}", request.getPaymentId(), userId);
         PaymentRequestEntity paymentRequestEntity = paymentRequestRepository
                 .findByIdWithPessimisticLock(request.getPaymentId())
                 .orElseThrow(() -> new PaymentNotFoundException("주문 정보를 찾을 수 없습니다."));
-
-        validatePaymentStatus(paymentRequestEntity);
+        if (!paymentRequestEntity.getStatus().equals(PaymentRequestStatus.READY)) {
+            throw new AlreadyProcessedException("이미 처리 중이거나 완료된 주문입니다.");
+        }
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("사용자 정보를 찾을 수 없습니다."));
-        // User user = userRepository.getReferenceById(userId);//?
 
         if (paymentRequestEntity.isExpired()) {
             log.warn("Payment request {} expired. Marking as EXPIRED.", paymentRequestEntity.getId());
             paymentRequestEntity.markAsExpired();
             return saveFailAndReturn(paymentRequestEntity, user, "결제 시간 만료", "결제 시간이 만료되었습니다. 처음부터 다시 시도해주세요.");
         }
-        validatePaymentRequest(paymentRequestEntity, request);
+
+        if (!paymentRequestEntity.getMerchant().getId().equals(request.getMerchantId())) {
+            throw new PaymentForgeryException("가맹점 정보가 일치하지 않습니다. (위변조 의심)");
+        }
+
+        if (paymentRequestEntity.getTotalAmount().compareTo(request.getAmount()) != 0) {
+            throw new PaymentForgeryException("결제 요청 금액이 실제 주문 금액과 일치하지 않습니다. (위변조 결제 방어)");
+        }
 
         Wallet wallet = walletRepository.findByUserIdWithPessimisticLock(userId)
                 .orElseThrow(() -> new WalletNotFoundException("사용자의 지갑 정보를 찾을 수 없습니다."));
@@ -64,7 +72,7 @@ public class PaymentService {
     }
 
     @Transactional
-    public PaymentDto.Prepare.Response preparePayment(PaymentDto.Prepare.Request request, String idempotencyKey) {
+    public PaymentDto.Prepare.Response readyPayment(PaymentDto.Prepare.Request request, String idempotencyKey) {
         log.info("Preparing payment for merchantId: {}, idempotencyKey: {}", request.getMerchantId(), idempotencyKey);
         Long merchantId = request.getMerchantId();
 
@@ -90,22 +98,14 @@ public class PaymentService {
         return PaymentDto.Info.Response.from(payment);
     }
 
-    private void validatePaymentRequest(PaymentRequestEntity paymentRequest, PaymentDto.Approve.Request request) {
-
-        if (!paymentRequest.getMerchant().getId().equals(request.getMerchantId())) {
-            throw new PaymentForgeryException("가맹점 정보가 일치하지 않습니다. (위변조 의심)");
-        }
-
-        if (paymentRequest.getTotalAmount().compareTo(request.getAmount()) != 0) {
-            throw new PaymentForgeryException("결제 요청 금액이 실제 주문 금액과 일치하지 않습니다. (위변조 결제 방어)");
-        }
-    }
-
-    public void validatePaymentStatus(PaymentRequestEntity paymentRequest) {
-        if (!paymentRequest.getStatus().equals(PaymentRequestStatus.READY)) {
-            throw new AlreadyProcessedException("이미 처리 중이거나 완료된 주문입니다.");
-        }
-    }
+//    private void validatePaymentRequest(PaymentRequestEntity paymentRequest, PaymentDto.Approve.Request request) {
+//
+//
+//    }
+//
+//    public void validatePaymentStatus(PaymentRequestEntity paymentRequest) {
+//
+//    }
 
     private PaymentDto.Approve.Response saveFailAndReturn(
             PaymentRequestEntity paymentRequest, User user, String reason, String message) {

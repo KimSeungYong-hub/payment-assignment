@@ -13,17 +13,17 @@ import org.springframework.web.bind.annotation.*;
 public class PaymentController {
     private final PaymentService paymentService;
 
-    @PostMapping("/prepare")
-    public ResponseEntity<PaymentDto.Prepare.Response> preparePayment(@RequestBody PaymentDto.Prepare.Request request,
+    @PostMapping("/ready")
+    public ResponseEntity<PaymentDto.Prepare.Response> readyPayment(@RequestBody PaymentDto.Prepare.Request request,
             @RequestHeader(value = "Idempotency-Key") String idempotencyKey) {
-        PaymentDto.Prepare.Response response = paymentService.preparePayment(request, idempotencyKey);
+        PaymentDto.Prepare.Response response = paymentService.readyPayment(request, idempotencyKey);
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/approve")
-    public ResponseEntity<PaymentDto.Approve.Response> approvePayment(@RequestBody PaymentDto.Approve.Request request) {
+    @PostMapping("/confirm")
+    public ResponseEntity<PaymentDto.Approve.Response> confirmPayment(@RequestBody PaymentDto.Approve.Request request) {
         Long userId = 1L;
-        PaymentDto.Approve.Response response = paymentService.requestPayment(request, userId);
+        PaymentDto.Approve.Response response = paymentService.confirmPayment(request, userId);
 
         if (!response.isSuccess()) {
             // 비즈니스 실패 (잔액 부족 등) -> HTTP 400 상태 코드로 반환
