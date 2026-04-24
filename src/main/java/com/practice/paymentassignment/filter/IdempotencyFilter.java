@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
-@Component
+//@Component
 @RequiredArgsConstructor
 public class IdempotencyFilter extends OncePerRequestFilter {
 
@@ -38,7 +38,11 @@ public class IdempotencyFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
             throws IOException, ServletException {
         String key = req.getHeader("Idempotency-Key");
-        if (isWriteMethod(req) && key != null) {
+        if(!isWriteMethod(req)){//|| key=null
+            chain.doFilter(req, res);
+            return;
+        }
+
             String redisKey = req.getMethod() + ":" + req.getRequestURI() + ":" + key;
             // 저장 성공 시 (기존에 키가 없었음): 1 , 저장 실패 시 (기존에 키가 있었음): 0
             Boolean isFirstRequest = redisTemplate.opsForValue().setIfAbsent(redisKey, "PROGRESSING", TTL);
@@ -82,9 +86,6 @@ public class IdempotencyFilter extends OncePerRequestFilter {
                 }
 
             }
-        } else {
-            chain.doFilter(req, res);
-        }
     }
 
     private boolean isWriteMethod(HttpServletRequest req) {
