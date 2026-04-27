@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: payment-assignment
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    url: jdbc:tc:mariadb:11.4:///test?TC_REUSABLE=true
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+#spring.jpa.hibernate.jdbc.time_zone= UTC
