@@ -13,7 +13,7 @@ public class MdcFilter extends OncePerRequestFilter {
 
 //    public static final String REQUEST_URI = "requestUri";
 //    public static final String HTTP_METHOD = "httpMethod";
-
+    public static final String REQUEST_ID = "requestId";
     @Override
     protected void doFilterInternal(jakarta.servlet.http.HttpServletRequest request,
                                     jakarta.servlet.http.HttpServletResponse response,
@@ -22,7 +22,7 @@ public class MdcFilter extends OncePerRequestFilter {
         String requestId = UUID.randomUUID().toString();
 
         try {
-            MDC.put("requestId", requestId);
+            MDC.put(REQUEST_ID, requestId);
 //            MDC.put(REQUEST_URI, requestUri);
 //            MDC.put(HTTP_METHOD, httpMethod);
             filterChain.doFilter(request, response);
