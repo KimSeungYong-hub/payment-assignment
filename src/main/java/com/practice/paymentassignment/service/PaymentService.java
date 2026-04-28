@@ -40,7 +40,8 @@ public class PaymentService {
         if (paymentRequestEntity.isExpired()) {
             log.warn("Payment request {} expired. Marking as EXPIRED.", paymentRequestEntity.getId());
             paymentRequestEntity.markAsExpired();
-            return saveFailAndReturn(paymentRequestEntity, user, "결제 시간 만료", "결제 시간이 만료되었습니다. 처음부터 다시 시도해주세요.");
+            paymentRepository.save(Payment.createFail(paymentRequestEntity, user, paymentRequestEntity.getTotalAmount(), "결제 시간 만료"));
+            return PaymentDto.Approve.Response.of(false, "결제 시간이 만료되었습니다. 처음부터 다시 시도해주세요.");
         }
 
         if (!paymentRequestEntity.getMerchant().getId().equals(request.getMerchantId())) {
@@ -59,7 +60,8 @@ public class PaymentService {
         if (!isPaid) {
             log.info("Payment failed for paymentId: {} due to insufficient balance for userId: {}",
                     request.getPaymentId(), userId);
-            return saveFailAndReturn(paymentRequestEntity, user, "잔액 부족", "잔액이 부족합니다.");
+            paymentRepository.save(Payment.createFail(paymentRequestEntity, user, paymentRequestEntity.getTotalAmount(), "잔액 부족"));
+            return PaymentDto.Approve.Response.of(false, "잔액이 부족합니다.");
         }
 
         Payment payment = Payment.createSuccess(paymentRequestEntity, user, paymentRequestEntity.getTotalAmount());
@@ -107,10 +109,10 @@ public class PaymentService {
 //
 //    }
 
-    private PaymentDto.Approve.Response saveFailAndReturn(
-            PaymentRequestEntity paymentRequest, User user, String reason, String message) {
-        paymentRepository.save(Payment.createFail(paymentRequest, user, paymentRequest.getTotalAmount(), reason));
-        return PaymentDto.Approve.Response.of(false, message);
-    }
+//    private PaymentDto.Approve.Response saveFailAndReturn(
+//            PaymentRequestEntity paymentRequest, User user, String reason, String message) {
+//        paymentRepository.save(Payment.createFail(paymentRequest, user, paymentRequest.getTotalAmount(), reason));
+//        return PaymentDto.Approve.Response.of(false, message);
+//    }
 
 }
