@@ -1,5 +1,7 @@
 package com.practice.paymentassignment.service;
 
+import com.practice.paymentassignment.domain.merchant.MerchatService;
+import com.practice.paymentassignment.domain.user.UserService;
 import com.practice.paymentassignment.dto.PaymentDto;
 import com.practice.paymentassignment.entity.*;
 import com.practice.paymentassignment.exception.*;
@@ -10,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -18,59 +21,67 @@ import java.math.BigDecimal;
 @Service
 public class PaymentService {
     private static final Logger log = LoggerFactory.getLogger(PaymentService.class);
-    private final MerchantRepository merchantRepository;
+
+    private final MerchatService merchatService;
+
     private final PaymentRepository paymentRepository;
     private final PaymentRequestRepository paymentRequestRepository;
     private final WalletRepository walletRepository;
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     @Transactional
     public PaymentDto.Approve.Response confirmPayment(PaymentDto.Approve.Request request, Long userId) {
         log.info("Payment request received for paymentId: {}, userId: {}", request.getPaymentId(), userId);
-        PaymentRequestEntity paymentRequestEntity = paymentRequestRepository
-                .findByIdWithPessimisticLock(request.getPaymentId())
-                .orElseThrow(() -> new PaymentNotFoundException("주문 정보를 찾을 수 없습니다."));
-        if (!paymentRequestEntity.getStatus().equals(PaymentRequestStatus.READY)) {
-            throw new AlreadyProcessedException("이미 처리 중이거나 완료된 주문입니다.");
-        }
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("사용자 정보를 찾을 수 없습니다."));
+        PaymentRequestEntity paymentRequest = findPaymentRequestWithLock(request.getPaymentId());
+        BigDecimal totalAmount = paymentRequest.getTotalAmount();
 
-        if (paymentRequestEntity.isExpired()) {
-            log.warn("Payment request {} expired. Marking as EXPIRED.", paymentRequestEntity.getId());
-            paymentRequestEntity.markAsExpired();
-            paymentRepository.save(Payment.createFail(paymentRequestEntity, user, paymentRequestEntity.getTotalAmount(), "결제 시간 만료"));
+        User user = userService.findUser(userId);
+
+        paymentRequest.verifyCanBeApproved(request.getPaymentId(), request.getAmount());
+        if (paymentRequest.isExpired()) {
+            log.warn("Payment request {} expired. Marking as EXPIRED.", paymentRequest.getId());
+            paymentRequest.markAsExpired();
+            paymentRepository.save(Payment.createFail(paymentRequest, user, totalAmount, "결제 시간 만료"));
             return PaymentDto.Approve.Response.of(false, "결제 시간이 만료되었습니다. 처음부터 다시 시도해주세요.");
         }
 
-        if (!paymentRequestEntity.getMerchant().getId().equals(request.getMerchantId())) {
-            throw new PaymentForgeryException("가맹점 정보가 일치하지 않습니다. (위변조 의심)");
-        }
-
-        if (paymentRequestEntity.getTotalAmount().compareTo(request.getAmount()) != 0) {
-            throw new PaymentForgeryException("결제 요청 금액이 실제 주문 금액과 일치하지 않습니다. (위변조 결제 방어)");
-        }
-
-        Wallet wallet = walletRepository.findByUserIdWithPessimisticLock(userId)
-                .orElseThrow(() -> new WalletNotFoundException("사용자의 지갑 정보를 찾을 수 없습니다."));
-
-        boolean isPaid = wallet.pay(paymentRequestEntity.getTotalAmount());
-
+        Wallet wallet = findWalletWithLock(userId);
+        boolean isPaid = wallet.pay(totalAmount);
         if (!isPaid) {
             log.info("Payment failed for paymentId: {} due to insufficient balance for userId: {}",
                     request.getPaymentId(), userId);
-            paymentRepository.save(Payment.createFail(paymentRequestEntity, user, paymentRequestEntity.getTotalAmount(), "잔액 부족"));
+            paymentRepository.save(Payment.createFail(paymentRequest, user, totalAmount, "잔액 부족"));
             return PaymentDto.Approve.Response.of(false, "잔액이 부족합니다.");
         }
 
-        Payment payment = Payment.createSuccess(paymentRequestEntity, user, paymentRequestEntity.getTotalAmount());
+        Payment payment = Payment.createSuccess(paymentRequest, user, totalAmount);
         paymentRepository.save(payment);
-
+        paymentRequest.markAsDone();
         log.info("Payment successful for paymentId: {}, userId: {}", request.getPaymentId(), userId);
-        paymentRequestEntity.markAsDone();
 
         return PaymentDto.Approve.Response.of(true, "결제가 완료되었습니다.");
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public PaymentDto.Approve.Response recordFailure(PaymentRequestEntity paymentRequest, User user, BigDecimal totalAmount, Exception e){
+        paymentRequest.markAsExpired();
+        paymentRepository.save(Payment.createFail(paymentRequest, user, totalAmount, "결제 시간 만료"));
+        return PaymentDto.Approve.Response.of(false, e.getMessage());
+    }
+
+
+    private Wallet findWalletWithLock(Long userId) {
+        return walletRepository.findByUserIdWithPessimisticLock(userId)
+                .orElseThrow(() -> new WalletNotFoundException("사용자의 지갑 정보를 찾을 수 없습니다."));
+    }
+
+
+
+    public PaymentRequestEntity findPaymentRequestWithLock(Long paymentId) {
+        return paymentRequestRepository
+                .findByIdWithPessimisticLock(paymentId)
+                .orElseThrow(() -> new PaymentNotFoundException("주문 정보를 찾을 수 없습니다."));
     }
 
     @Transactional
@@ -78,8 +89,7 @@ public class PaymentService {
         log.info("Preparing payment for merchantId: {}, idempotencyKey: {}", request.getMerchantId(), idempotencyKey);
         Long merchantId = request.getMerchantId();
 
-        Merchant merchant = merchantRepository.findById(merchantId)
-                .orElseThrow(() -> new MerchantNotFoundException("가맹점을 찾을 수 없습니다."));
+        Merchant merchant = merchatService.findMerchant(merchantId);
         BigDecimal totalAmount = merchant.getAmount();
         PaymentRequestEntity paymentRequestEntity = PaymentRequestEntity.builder()
                 .merchant(merchant)

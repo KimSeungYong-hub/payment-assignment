@@ -1,5 +1,6 @@
 package com.practice.paymentassignment.controller;
 
+import com.practice.paymentassignment.PaymentUseCase;
 import com.practice.paymentassignment.dto.PaymentDto;
 import com.practice.paymentassignment.service.PaymentService;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @RestController
 public class PaymentController {
-    private final PaymentService paymentService;
+    private final PaymentUseCase paymentUseCase;
 
     @PostMapping("/ready")
     public ResponseEntity<PaymentDto.Prepare.Response> readyPayment(@RequestBody PaymentDto.Prepare.Request request,
@@ -23,7 +24,7 @@ public class PaymentController {
     @PostMapping("/confirm")
     public ResponseEntity<PaymentDto.Approve.Response> confirmPayment(@RequestBody PaymentDto.Approve.Request request) {
         Long userId = 1L;
-        PaymentDto.Approve.Response response = paymentService.confirmPayment(request, userId);
+        PaymentDto.Approve.Response response = paymentUseCase.confirmPayment(request, userId);
 
         if (!response.isSuccess()) {
             // 비즈니스 실패 (잔액 부족 등) -> HTTP 400 상태 코드로 반환
