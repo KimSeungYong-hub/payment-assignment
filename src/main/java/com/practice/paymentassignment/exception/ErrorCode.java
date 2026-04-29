@@ -19,8 +19,10 @@ public enum ErrorCode {
     // Payment
     PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "P001", "Payment not found"),
     PAYMENT_FORGERY(HttpStatus.BAD_REQUEST, "P005", "결제 위변조 시도가 감지되었습니다."),
+    PAYMENT_EXPIRED(HttpStatus.BAD_REQUEST, "P001", "결제 시간이 만료되었습니다. 처음부터 다시 시도해주세요."),
 
-    WALLET_NOT_FOUND(HttpStatus.NOT_FOUND, "W001", "Wallet not found");
+    WALLET_NOT_FOUND(HttpStatus.NOT_FOUND, "W001", "Wallet not found"),
+    INSUFFICIENT_BALANCE(HttpStatus.BAD_REQUEST, "W002", "Insufficient balance");
 
     private final HttpStatus status;
     private final String code;
