@@ -1,4 +1,4 @@
-package com.practice.paymentassignment.entity;
+package com.practice.paymentassignment.domain.merchant;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;

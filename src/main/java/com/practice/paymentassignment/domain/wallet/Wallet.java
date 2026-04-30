@@ -1,5 +1,6 @@
-package com.practice.paymentassignment.entity;
+package com.practice.paymentassignment.domain.wallet;
 
+import com.practice.paymentassignment.domain.user.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;

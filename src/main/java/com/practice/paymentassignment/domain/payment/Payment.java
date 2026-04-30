@@ -1,7 +1,8 @@
-package com.practice.paymentassignment.entity;
+package com.practice.paymentassignment.domain.payment;
 
+import com.practice.paymentassignment.entity.BaseEntity;
+import com.practice.paymentassignment.domain.user.User;
 import jakarta.persistence.*;
-import jdk.jshell.Snippet;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -10,7 +11,6 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.Instant;
 
-import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -19,26 +19,26 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Table(name = "payments")
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Payment extends BaseEntity{
+public class Payment extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "payment_request_id", nullable = false)
+    @JoinColumn(nullable = false)
     private PaymentRequestEntity paymentRequest;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(nullable = false)
     private User user;
 
-    @Column(name = "amount", precision = 19, scale = 0, nullable = false)
+    @Column(precision = 19, scale = 0, nullable = false)
     private BigDecimal amount;
 
     @Enumerated(EnumType.STRING)
     private PaymentStatus status;
 
-    @Column(name = "fail_reason", length = 500)
+    @Column(length = 500)
     private String failReason;
 
     @CreatedDate

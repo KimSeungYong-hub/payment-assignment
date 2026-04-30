@@ -1,7 +1,7 @@
 package com.practice.paymentassignment.wallet;
 
-import com.practice.paymentassignment.entity.Wallet;
-import com.practice.paymentassignment.entity.User;
+import com.practice.paymentassignment.domain.wallet.Wallet;
+import com.practice.paymentassignment.domain.user.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

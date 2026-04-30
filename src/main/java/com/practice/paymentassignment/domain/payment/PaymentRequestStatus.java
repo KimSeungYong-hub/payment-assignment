@@ -1,4 +1,4 @@
-package com.practice.paymentassignment.entity;
+package com.practice.paymentassignment.domain.payment;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

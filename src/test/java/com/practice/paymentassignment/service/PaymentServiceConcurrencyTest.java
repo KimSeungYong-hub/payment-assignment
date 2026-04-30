@@ -1,9 +1,18 @@
 package com.practice.paymentassignment.service;
 
 import com.practice.paymentassignment.AbstractIntegrationTest;
+import com.practice.paymentassignment.domain.merchant.Merchant;
+import com.practice.paymentassignment.domain.merchant.repository.MerchantRepository;
+import com.practice.paymentassignment.domain.payment.PaymentRequestEntity;
+import com.practice.paymentassignment.domain.payment.PaymentRequestStatus;
+import com.practice.paymentassignment.domain.payment.repository.PaymentRepository;
+import com.practice.paymentassignment.domain.payment.repository.PaymentRequestRepository;
+import com.practice.paymentassignment.domain.payment.service.PaymentService;
+import com.practice.paymentassignment.domain.user.User;
+import com.practice.paymentassignment.domain.user.repository.UserRepository;
+import com.practice.paymentassignment.domain.wallet.Wallet;
+import com.practice.paymentassignment.domain.wallet.repository.WalletRepository;
 import com.practice.paymentassignment.dto.PaymentDto;
-import com.practice.paymentassignment.entity.*;
-import com.practice.paymentassignment.repository.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

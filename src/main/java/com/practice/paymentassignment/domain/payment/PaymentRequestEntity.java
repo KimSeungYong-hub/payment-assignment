@@ -1,6 +1,6 @@
-package com.practice.paymentassignment.entity;
+package com.practice.paymentassignment.domain.payment;
 
-import com.practice.paymentassignment.dto.PaymentDto;
+import com.practice.paymentassignment.domain.merchant.Merchant;
 import com.practice.paymentassignment.exception.AlreadyProcessedException;
 import com.practice.paymentassignment.exception.PaymentExpiredException;
 import com.practice.paymentassignment.exception.PaymentForgeryException;
@@ -58,6 +58,14 @@ public class PaymentRequestEntity {
         this.expiredAt = Instant.now().plusSeconds(60 * 10); // 10분 후 만료
     }
 
+    public static PaymentRequestEntity createSuccess(Merchant merchant, BigDecimal totalAmount, String idempotencyKey) {
+        return PaymentRequestEntity.builder()
+                .merchant(merchant)
+                .orderId(idempotencyKey)
+                .totalAmount(totalAmount)
+                .build();
+    }
+
     public void markAsDone() {
         this.status = PaymentRequestStatus.SUCCESS;
     }
@@ -77,7 +85,9 @@ public class PaymentRequestEntity {
     public void markAsExpired() {
         this.status = PaymentRequestStatus.EXPIRED;
     }
-
+    public void markAsFail() {
+        this.status = PaymentRequestStatus.FAILURE;
+    }
 
     public void verifyCanBeApproved(Long merchantId, BigDecimal amount) {
         if (!this.getStatus().equals(PaymentRequestStatus.READY)) {
@@ -95,4 +105,6 @@ public class PaymentRequestEntity {
             throw new PaymentExpiredException("결제 시간이 만료되었습니다. 처음부터 다시 시도해주세요.");
         }
     }
+
+
 }

@@ -1,9 +1,7 @@
 package com.practice.paymentassignment.dto;
 
-import com.practice.paymentassignment.entity.PaymentRequestEntity;
-import lombok.AllArgsConstructor;
+import com.practice.paymentassignment.domain.payment.PaymentRequestEntity;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
 import java.math.BigDecimal;

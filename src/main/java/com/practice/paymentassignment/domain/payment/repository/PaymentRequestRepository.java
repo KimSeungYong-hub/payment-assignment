@@ -1,7 +1,6 @@
-package com.practice.paymentassignment.repository;
+package com.practice.paymentassignment.domain.payment.repository;
 
-import com.practice.paymentassignment.entity.Payment;
-import com.practice.paymentassignment.entity.PaymentRequestEntity;
+import com.practice.paymentassignment.domain.payment.PaymentRequestEntity;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;

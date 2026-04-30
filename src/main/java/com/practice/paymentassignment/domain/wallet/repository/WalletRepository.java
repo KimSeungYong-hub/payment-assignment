@@ -1,12 +1,10 @@
-package com.practice.paymentassignment.repository;
+package com.practice.paymentassignment.domain.wallet.repository;
 
-import com.practice.paymentassignment.entity.Wallet;
+import com.practice.paymentassignment.domain.wallet.Wallet;
 import jakarta.persistence.LockModeType;
-import jakarta.persistence.QueryHint;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
