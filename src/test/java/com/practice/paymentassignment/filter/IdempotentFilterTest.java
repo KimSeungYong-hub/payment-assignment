@@ -21,7 +21,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class IdempotencyFilterTest extends AbstractIntegrationTest {
+public class IdempotentFilterTest extends AbstractIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;

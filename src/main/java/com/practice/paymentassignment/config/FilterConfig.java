@@ -16,7 +16,6 @@ public class FilterConfig {
     public FilterRegistrationBean<IdempotencyFilter> filterRegistrationBean(){
         FilterRegistrationBean<IdempotencyFilter> filterRegistrationBean = new FilterRegistrationBean<>(new IdempotencyFilter(redisTemplate));
         filterRegistrationBean.addUrlPatterns("/sft/ready", "/sft/confirm");
-        System.out.println("filterRegistrationBean: test filter!!!!!!!!!!!!!!!!!!!!!");
         return filterRegistrationBean;
     }
 }

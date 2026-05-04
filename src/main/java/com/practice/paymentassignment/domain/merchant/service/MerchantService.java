@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
 @Service
-public class MerchatService {
+public class MerchantService {
     private final MerchantRepository merchantRepository;
 
     public Merchant findMerchant(Long merchantId){

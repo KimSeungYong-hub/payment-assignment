@@ -28,14 +28,14 @@ public class PaymentRequestEntity {
 
     // 가맹점 정보 (다대일 관계)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "merchant_id", nullable = false)
+    @JoinColumn(nullable = false)
     private Merchant merchant;
 
     // 🌟 핵심: 가맹점의 주문번호를 유니크 키로 설정하여 DB 레벨의 멱등성 보장
-    @Column(name = "merchant_order_id", nullable = false, unique = true)
+    @Column( nullable = false, unique = true)
     private String orderId;
 
-    @Column(name = "total_amount", precision = 19, scale = 0, nullable = false)
+    @Column( precision = 19, scale = 0, nullable = false)
     private BigDecimal totalAmount;
 
     @Enumerated(EnumType.STRING)
@@ -43,10 +43,9 @@ public class PaymentRequestEntity {
     private PaymentRequestStatus status;
 
     @CreatedDate
-    @Column(name = "created_at", updatable = false, nullable = false)
+    @Column(updatable = false, nullable = false)
     private Instant createdAt;
 
-    @Column(name = "expired_at")
     private Instant expiredAt;
 
     @Builder
