@@ -1,7 +1,6 @@
 package com.practice.paymentassignment.domain.payment.service;
 
 import com.practice.paymentassignment.domain.merchant.Merchant;
-import com.practice.paymentassignment.domain.merchant.service.MerchatService;
 import com.practice.paymentassignment.domain.payment.Payment;
 import com.practice.paymentassignment.domain.payment.PaymentRequestEntity;
 import com.practice.paymentassignment.domain.payment.repository.PaymentRepository;
@@ -14,7 +13,6 @@ import org.springframework.stereotype.Service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -24,7 +22,7 @@ import java.math.BigDecimal;
 public class PaymentService {
     private static final Logger log = LoggerFactory.getLogger(PaymentService.class);
 
-    private final MerchatService merchatService;
+//    private final MerchatService merchatService;
 
     private final PaymentRepository paymentRepository;
     private final PaymentRequestRepository paymentRequestRepository;
@@ -65,9 +63,9 @@ public class PaymentService {
 //        return PaymentDto.Approve.Response.of(true, "결제가 완료되었습니다.");
 //    }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void recordFailure(PaymentRequestEntity paymentRequest, User user, BigDecimal totalAmount, String message){
-        if(message.equals(ErrorCode.PAYMENT_EXPIRED.getMessage())){
+    @Transactional
+    public void recordFailure(PaymentRequestEntity paymentRequest, User user, BigDecimal totalAmount,ErrorCode errorCode, String message){
+        if(errorCode.equals(ErrorCode.PAYMENT_EXPIRED)){
             paymentRequest.markAsExpired();
         }else{
             paymentRequest.markAsFail();
