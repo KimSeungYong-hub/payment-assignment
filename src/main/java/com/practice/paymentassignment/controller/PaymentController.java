@@ -1,5 +1,6 @@
 package com.practice.paymentassignment.controller;
 
+import com.practice.paymentassignment.Idempotent;
 import com.practice.paymentassignment.PaymentUseCase;
 import com.practice.paymentassignment.dto.PaymentDto;
 import com.practice.paymentassignment.domain.payment.service.PaymentService;
@@ -14,6 +15,7 @@ public class PaymentController {
     private final PaymentUseCase paymentUseCase;
     private final PaymentService paymentService;
 
+    @Idempotent(ttl = 300, prefix = "idempotency:readyPayment:")
     @PostMapping("/ready")
     public ResponseEntity<PaymentDto.Prepare.Response> readyPayment(@RequestBody PaymentDto.Prepare.Request request,
             @RequestHeader(value = "Idempotency-Key") String idempotencyKey) {
@@ -21,6 +23,7 @@ public class PaymentController {
         return ResponseEntity.ok(response);
     }
 
+    @Idempotent(ttl = 300, prefix = "idempotency:confirmPayment:")
     @PostMapping("/confirm")
     public ResponseEntity<PaymentDto.Approve.Response> confirmPayment(@RequestBody PaymentDto.Approve.Request request) {
         Long userId = 1L;
