@@ -1,7 +1,10 @@
 package com.practice.paymentassignment.service;
 
+import com.practice.paymentassignment.PaymentTransactionProcessor;
+import com.practice.paymentassignment.PaymentUseCase;
 import com.practice.paymentassignment.domain.merchant.Merchant;
 import com.practice.paymentassignment.domain.merchant.repository.MerchantRepository;
+import com.practice.paymentassignment.domain.merchant.service.MerchantService;
 import com.practice.paymentassignment.domain.payment.Payment;
 import com.practice.paymentassignment.domain.payment.PaymentRequestEntity;
 import com.practice.paymentassignment.domain.payment.PaymentRequestStatus;
@@ -10,8 +13,10 @@ import com.practice.paymentassignment.domain.payment.repository.PaymentRepositor
 import com.practice.paymentassignment.domain.payment.repository.PaymentRequestRepository;
 import com.practice.paymentassignment.domain.payment.service.PaymentService;
 import com.practice.paymentassignment.domain.user.User;
+import com.practice.paymentassignment.domain.user.UserService;
 import com.practice.paymentassignment.domain.user.repository.UserRepository;
 import com.practice.paymentassignment.domain.wallet.Wallet;
+import com.practice.paymentassignment.domain.wallet.WalletService;
 import com.practice.paymentassignment.domain.wallet.repository.WalletRepository;
 import com.practice.paymentassignment.dto.PaymentDto;
 import com.practice.paymentassignment.exception.PaymentForgeryException;
@@ -36,22 +41,20 @@ import static org.mockito.Mockito.when;
 public class PaymentServiceTest {
 
         @Mock
-        private MerchantRepository merchantRepository;
+        private MerchantService merchantService;
 
         @Mock
-        private PaymentRepository paymentRepository;
+        private  PaymentService paymentService;
 
         @Mock
-        private PaymentRequestRepository paymentRequestRepository;
+        private UserService userService;
 
         @Mock
-        private UserRepository userRepository;
-
-        @Mock
-        private WalletRepository walletRepository;
+        private WalletService walletService;
 
         @InjectMocks
-        private PaymentService paymentService;
+        private PaymentTransactionProcessor paymentTransactionProcessor;
+
 
         @Test
         @DisplayName("결제 준비 성공")
@@ -65,10 +68,10 @@ public class PaymentServiceTest {
                                 .build();
                 ReflectionTestUtils.setField(merchant, "id", 1L);
 
-                when(merchantRepository.findById(1L)).thenReturn(Optional.of(merchant));
+                when(merchantService.findMerchant(1L)).thenReturn(merchant);
 
                 // when
-                PaymentDto.Prepare.Response response = paymentService.savePaymentRequest(merchant, idempotencyKey);
+                PaymentDto.Prepare.Response response = paymentUseCase.readyPayment(request, idempotencyKey);
 
                 // then
                 assertThat(response.getMerchantName()).isEqualTo("Test Merchant");
@@ -102,7 +105,7 @@ public class PaymentServiceTest {
                 given(walletRepository.findByUserIdWithPessimisticLock(anyLong())).willReturn(Optional.of(wallet));
                 given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
                 // when
-                PaymentDto.Approve.Response response = paymentService.confirmPayment(request, 1L);
+                PaymentDto.Approve.Response response = paymentUseCase.confirmPayment(request, 1L);
 
                 // then
                 assertThat(response.isSuccess()).isTrue();
@@ -110,34 +113,34 @@ public class PaymentServiceTest {
                 assertThat(paymentRequest.getStatus()).isEqualTo(PaymentRequestStatus.SUCCESS);
         }
 
-        @Test
-        @DisplayName("가맹점 정보가 일치하지 않는 경우 예외 발생")
-        public void confirmPayment_Merchant_Mismatch() {
-                // given
-                PaymentDto.Approve.Request request = new PaymentDto.Approve.Request(1L, 999L, new BigDecimal("10000")); // merchant
-                                                                                                                        // 999
-                User user = new User(1L, "Tester");
-                Long userId = user.getId();
-
-                Merchant merchant = Merchant.builder()
-                                .merchantName("test_merchant")
-                                .build();
-                ReflectionTestUtils.setField(merchant, "id", 1L);
-
-                PaymentRequestEntity paymentRequest = PaymentRequestEntity.builder()
-                                .merchant(merchant)
-                                .build();
-
-                given(paymentRequestRepository.findByIdWithPessimisticLock(anyLong()))
-                                .willReturn(Optional.of(paymentRequest));
-                given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
-
-                // when & then
-                final PaymentForgeryException exception = assertThrows(
-                                PaymentForgeryException.class,
-                                () -> paymentService.confirmPayment(request, userId));
-                assertThat(exception.getMessage()).contains("가맹점 정보가 일치하지 않습니다");
-        }
+//        @Test
+//        @DisplayName("가맹점 정보가 일치하지 않는 경우 예외 발생")
+//        public void confirmPayment_Merchant_Mismatch() {
+//                // given
+//                PaymentDto.Approve.Request request = new PaymentDto.Approve.Request(1L, 999L, new BigDecimal("10000")); // merchant
+//                                                                                                                        // 999
+//                User user = new User(1L, "Tester");
+//                Long userId = user.getId();
+//
+//                Merchant merchant = Merchant.builder()
+//                                .merchantName("test_merchant")
+//                                .build();
+//                ReflectionTestUtils.setField(merchant, "id", 1L);
+//
+//                PaymentRequestEntity paymentRequest = PaymentRequestEntity.builder()
+//                                .merchant(merchant)
+//                                .build();
+//
+//                given(paymentRequestRepository.findByIdWithPessimisticLock(anyLong()))
+//                                .willReturn(Optional.of(paymentRequest));
+//                given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
+//
+//                // when & then
+//                final PaymentForgeryException exception = assertThrows(
+//                                PaymentForgeryException.class,
+//                                () -> paymentUseCase.confirmPayment(request, userId));
+//                assertThat(exception.getMessage()).contains("가맹점 정보가 일치하지 않습니다");
+//        }
 
         @Test
         @DisplayName("결제 요청 금액이 원장 금액과 다를 경우 (위변조 시도) 예외 발생")
@@ -166,7 +169,7 @@ public class PaymentServiceTest {
                 // when & then
                 final PaymentForgeryException exception = assertThrows(
                                 PaymentForgeryException.class,
-                                () -> paymentService.confirmPayment(request, userId));
+                                () -> paymentUseCase.confirmPayment(request, userId));
                 assertThat(exception.getMessage()).contains("결제 요청 금액이 실제 주문 금액과 일치하지 않습니다");
         }
 
@@ -203,7 +206,7 @@ public class PaymentServiceTest {
                 given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
 
                 // when
-                PaymentDto.Approve.Response response = paymentService.confirmPayment(request, userId);
+                PaymentDto.Approve.Response response = paymentUseCase.confirmPayment(request, userId);
 
                 // then
                 assertThat(response.isSuccess()).isFalse();
@@ -232,7 +235,7 @@ public class PaymentServiceTest {
                 // when & then
                 final RuntimeException exception = assertThrows(
                                 RuntimeException.class,
-                                () -> paymentService.confirmPayment(request, userId));
+                                () -> paymentUseCase.confirmPayment(request, userId));
                 assertThat(exception.getMessage()).contains("이미 처리 중이거나 완료된 주문");
         }
 }

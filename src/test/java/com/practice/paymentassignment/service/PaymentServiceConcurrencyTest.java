@@ -1,6 +1,7 @@
 package com.practice.paymentassignment.service;
 
 import com.practice.paymentassignment.AbstractIntegrationTest;
+import com.practice.paymentassignment.PaymentUseCase;
 import com.practice.paymentassignment.domain.merchant.Merchant;
 import com.practice.paymentassignment.domain.merchant.repository.MerchantRepository;
 import com.practice.paymentassignment.domain.payment.PaymentRequestEntity;
@@ -31,6 +32,9 @@ public class PaymentServiceConcurrencyTest extends AbstractIntegrationTest {
 
     @Autowired
     private PaymentService paymentService;
+
+    @Autowired
+    private PaymentUseCase paymentUseCase;
 
     @Autowired
     private PaymentRepository paymentRepository;
@@ -92,7 +96,7 @@ public class PaymentServiceConcurrencyTest extends AbstractIntegrationTest {
         // when
         executorService.submit(() -> {
             try {
-                PaymentDto.Approve.Response response = paymentService.confirmPayment(
+                PaymentDto.Approve.Response response = paymentUseCase.confirmPayment(
                         new PaymentDto.Approve.Request(payment1.getId(), testMerchant.getId(), new BigDecimal("10000")),
                         testUser.getId());
                 if (response.isSuccess()) {
@@ -109,7 +113,7 @@ public class PaymentServiceConcurrencyTest extends AbstractIntegrationTest {
 
         executorService.submit(() -> {
             try {
-                PaymentDto.Approve.Response response = paymentService.confirmPayment(
+                PaymentDto.Approve.Response response = paymentUseCase.confirmPayment(
                         new PaymentDto.Approve.Request(payment2.getId(), testMerchant.getId(), new BigDecimal("10000")),
                         testUser.getId());
                 if (response.isSuccess()) {
@@ -154,7 +158,7 @@ public class PaymentServiceConcurrencyTest extends AbstractIntegrationTest {
         for (int i = 0; i < threadCount; i++) {
             executorService.submit(() -> {
                 try {
-                    PaymentDto.Approve.Response response = paymentService.confirmPayment(new PaymentDto.Approve.Request(
+                    PaymentDto.Approve.Response response = paymentUseCase.confirmPayment(new PaymentDto.Approve.Request(
                             payment.getId(), testMerchant.getId(), new BigDecimal("5000")), testUser.getId());
                     if (response.isSuccess()) {
                         successCount.incrementAndGet();
