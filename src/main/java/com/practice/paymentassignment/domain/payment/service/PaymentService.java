@@ -9,6 +9,7 @@ import com.practice.paymentassignment.domain.user.User;
 import com.practice.paymentassignment.dto.PaymentDto;
 import com.practice.paymentassignment.exception.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import org.slf4j.Logger;
@@ -17,51 +18,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class PaymentService {
-    private static final Logger log = LoggerFactory.getLogger(PaymentService.class);
-
-//    private final MerchatService merchatService;
 
     private final PaymentRepository paymentRepository;
     private final PaymentRequestRepository paymentRequestRepository;
-//    private final WalletRepository walletRepository;
-//    private final UserService userService;
-
-//    @Transactional
-//    public PaymentDto.Approve.Response confirmPayment(PaymentDto.Approve.Request request, Long userId) {
-//        log.info("Payment request received for paymentId: {}, userId: {}", request.getPaymentId(), userId);
-//
-//        PaymentRequestEntity paymentRequest = findPaymentRequestWithLock(request.getPaymentId());
-//        BigDecimal totalAmount = paymentRequest.getTotalAmount();
-//
-//        User user = userService.findUser(userId);
-//
-//        paymentRequest.verifyCanBeApproved(request.getPaymentId(), request.getAmount());
-//        if (paymentRequest.isExpired()) {
-//            log.warn("Payment request {} expired. Marking as EXPIRED.", paymentRequest.getId());
-//            paymentRequest.markAsExpired();
-//            paymentRepository.save(Payment.createFail(paymentRequest, user, totalAmount, "결제 시간 만료"));
-//            return PaymentDto.Approve.Response.of(false, "결제 시간이 만료되었습니다. 처음부터 다시 시도해주세요.");
-//        }
-//
-//        Wallet wallet = findWalletWithLock(userId);
-//        boolean isPaid = wallet.pay(totalAmount);
-//        if (!isPaid) {
-//            log.info("Payment failed for paymentId: {} due to insufficient balance for userId: {}",
-//                    request.getPaymentId(), userId);
-//            paymentRepository.save(Payment.createFail(paymentRequest, user, totalAmount, "잔액 부족"));
-//            return PaymentDto.Approve.Response.of(false, "잔액이 부족합니다.");
-//        }
-//
-//        Payment payment = Payment.createSuccess(paymentRequest, user, totalAmount);
-//        paymentRepository.save(payment);
-//        paymentRequest.markAsDone();
-//        log.info("Payment successful for paymentId: {}, userId: {}", request.getPaymentId(), userId);
-//
-//        return PaymentDto.Approve.Response.of(true, "결제가 완료되었습니다.");
-//    }
 
     @Transactional
     public void recordFailure(PaymentRequestEntity paymentRequest, User user, BigDecimal totalAmount,ErrorCode errorCode, String message){
@@ -78,11 +41,6 @@ public class PaymentService {
         paymentRequest.markAsDone();
         paymentRepository.save(Payment.createSuccess(paymentRequest, user, totalAmount));
     }
-
-//    private Wallet findWalletWithLock(Long userId) {
-//        return walletRepository.findByUserIdWithPessimisticLock(userId)
-//                .orElseThrow(() -> new WalletNotFoundException("사용자의 지갑 정보를 찾을 수 없습니다."));
-//    }
 
 
     @Transactional
@@ -110,22 +68,5 @@ public class PaymentService {
                 .orElseThrow(() -> new PaymentNotFoundException("존재하지 않는 주문 번호입니다."));
         return PaymentDto.Info.Response.from(payment);
     }
-
-
-
-//    private void validatePaymentRequest(PaymentRequestEntity paymentRequest, PaymentDto.Approve.Request request) {
-//
-//
-//    }
-//
-//    public void validatePaymentStatus(PaymentRequestEntity paymentRequest) {
-//
-//    }
-
-//    private PaymentDto.Approve.Response saveFailAndReturn(
-//            PaymentRequestEntity paymentRequest, User user, String reason, String message) {
-//        paymentRepository.save(Payment.createFail(paymentRequest, user, paymentRequest.getTotalAmount(), reason));
-//        return PaymentDto.Approve.Response.of(false, message);
-//    }
 
 }

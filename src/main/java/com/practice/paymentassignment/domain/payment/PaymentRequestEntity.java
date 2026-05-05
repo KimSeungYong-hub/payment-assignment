@@ -1,6 +1,7 @@
 package com.practice.paymentassignment.domain.payment;
 
 import com.practice.paymentassignment.domain.merchant.Merchant;
+import com.practice.paymentassignment.entity.BaseEntity;
 import com.practice.paymentassignment.exception.AlreadyProcessedException;
 import com.practice.paymentassignment.exception.PaymentExpiredException;
 import com.practice.paymentassignment.exception.PaymentForgeryException;
@@ -9,8 +10,6 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -18,9 +17,8 @@ import java.time.Instant;
 @Entity
 @Getter
 @Table(name = "payment_requests")
-@EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED) // JPA 기본 생성자는 Protected로 막아둠
-public class PaymentRequestEntity {
+public class PaymentRequestEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,10 +39,6 @@ public class PaymentRequestEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private PaymentRequestStatus status;
-
-    @CreatedDate
-    @Column(updatable = false, nullable = false)
-    private Instant createdAt;
 
     private Instant expiredAt;
 

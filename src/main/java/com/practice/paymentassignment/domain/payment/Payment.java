@@ -17,7 +17,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Getter
 @Entity
 @Table(name = "payments")
-@EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Payment extends BaseEntity {
     @Id
@@ -40,11 +39,6 @@ public class Payment extends BaseEntity {
 
     @Column(length = 500)
     private String failReason;
-
-    @CreatedDate
-//    @CreationTimestamp
-    @Column(nullable = false, updatable = false)
-    private Instant dateTime;
 
     @Builder
     public Payment(BigDecimal amount, PaymentStatus status, User user, PaymentRequestEntity paymentRequestEntity, String failReason) {

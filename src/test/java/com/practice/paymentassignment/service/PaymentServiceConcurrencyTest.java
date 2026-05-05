@@ -14,6 +14,9 @@ import com.practice.paymentassignment.domain.user.repository.UserRepository;
 import com.practice.paymentassignment.domain.wallet.Wallet;
 import com.practice.paymentassignment.domain.wallet.repository.WalletRepository;
 import com.practice.paymentassignment.dto.PaymentDto;
+import com.practice.paymentassignment.exception.AlreadyProcessedException;
+import com.practice.paymentassignment.exception.InsufficientBalanceException;
+import com.practice.paymentassignment.exception.PaymentExpiredException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -96,15 +99,16 @@ public class PaymentServiceConcurrencyTest extends AbstractIntegrationTest {
         // when
         executorService.submit(() -> {
             try {
-                PaymentDto.Approve.Response response = paymentUseCase.confirmPayment(
+                paymentUseCase.confirmPayment(
                         new PaymentDto.Approve.Request(payment1.getId(), testMerchant.getId(), new BigDecimal("10000")),
                         testUser.getId());
-                if (response.isSuccess()) {
-                    successCount.incrementAndGet();
-                } else {
-                    failCount.incrementAndGet();
-                }
+                successCount.incrementAndGet();
+            } catch (InsufficientBalanceException | PaymentExpiredException | AlreadyProcessedException e) {
+                System.out.println("Business exception caught: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+                failCount.incrementAndGet();
             } catch (Exception e) {
+                System.out.println("Unexpected exception caught: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+                e.printStackTrace();
                 failCount.incrementAndGet();
             } finally {
                 latch.countDown();
@@ -113,15 +117,16 @@ public class PaymentServiceConcurrencyTest extends AbstractIntegrationTest {
 
         executorService.submit(() -> {
             try {
-                PaymentDto.Approve.Response response = paymentUseCase.confirmPayment(
+                paymentUseCase.confirmPayment(
                         new PaymentDto.Approve.Request(payment2.getId(), testMerchant.getId(), new BigDecimal("10000")),
                         testUser.getId());
-                if (response.isSuccess()) {
-                    successCount.incrementAndGet();
-                } else {
-                    failCount.incrementAndGet();
-                }
+                successCount.incrementAndGet();
+            } catch (InsufficientBalanceException | PaymentExpiredException | AlreadyProcessedException e) {
+                System.out.println("Business exception caught: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+                failCount.incrementAndGet();
             } catch (Exception e) {
+                System.out.println("Unexpected exception caught: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+                e.printStackTrace();
                 failCount.incrementAndGet();
             } finally {
                 latch.countDown();
@@ -158,13 +163,11 @@ public class PaymentServiceConcurrencyTest extends AbstractIntegrationTest {
         for (int i = 0; i < threadCount; i++) {
             executorService.submit(() -> {
                 try {
-                    PaymentDto.Approve.Response response = paymentUseCase.confirmPayment(new PaymentDto.Approve.Request(
+                    paymentUseCase.confirmPayment(new PaymentDto.Approve.Request(
                             payment.getId(), testMerchant.getId(), new BigDecimal("5000")), testUser.getId());
-                    if (response.isSuccess()) {
-                        successCount.incrementAndGet();
-                    } else {
-                        failCount.incrementAndGet();
-                    }
+                    successCount.incrementAndGet();
+                } catch (InsufficientBalanceException | PaymentExpiredException | AlreadyProcessedException e) {
+                    failCount.incrementAndGet();
                 } catch (Exception e) {
                     failCount.incrementAndGet();
                 } finally {
@@ -178,6 +181,7 @@ public class PaymentServiceConcurrencyTest extends AbstractIntegrationTest {
         // then
         assertThat(successCount.get()).isEqualTo(1);
         assertThat(failCount.get()).isEqualTo(9);
+
 
         Wallet finalWallet = walletRepository.findById(testWallet.getId()).orElseThrow();
         assertThat(finalWallet.getBalance()).isEqualByComparingTo("5000"); // 10000원에서 5000원 1번만 깎힘
