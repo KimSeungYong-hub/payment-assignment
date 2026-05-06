@@ -1,7 +1,7 @@
 package com.practice.paymentassignment.domain.merchant.service;
 
 import com.practice.paymentassignment.domain.merchant.Merchant;
-import com.practice.paymentassignment.exception.MerchantNotFoundException;
+import com.practice.paymentassignment.global.exception.MerchantNotFoundException;
 import com.practice.paymentassignment.domain.merchant.repository.MerchantRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

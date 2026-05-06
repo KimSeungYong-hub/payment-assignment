@@ -17,10 +17,10 @@ public class Merchant {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "merchant_name", length = 100, nullable = false)
+    @Column(length = 100, nullable = false)
     private String merchantName;
 
-    @Column(name = "amount", precision = 19, scale = 2, nullable = false)
+    @Column( precision = 19, scale = 2, nullable = false)
     private BigDecimal amount;
 
     @Builder

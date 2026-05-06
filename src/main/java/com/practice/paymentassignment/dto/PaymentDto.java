@@ -1,6 +1,6 @@
 package com.practice.paymentassignment.dto;
 
-import com.practice.paymentassignment.domain.payment.PaymentRequestEntity;
+import com.practice.paymentassignment.domain.payment.PaymentRequest;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -24,7 +24,7 @@ public class PaymentDto {
             private final BigDecimal amount;
             private final Long paymentId;
 
-            public static Response from(PaymentRequestEntity paymentRequest) {
+            public static Response from(PaymentRequest paymentRequest) {
                 return new Response(
                         paymentRequest.getMerchant().getMerchantName(),
                         paymentRequest.getTotalAmount(),
@@ -64,7 +64,7 @@ public class PaymentDto {
             private final String merchantName;
             private final BigDecimal amount;
 
-            public static Response from(PaymentRequestEntity paymentRequest) {
+            public static Response from(PaymentRequest paymentRequest) {
                 return new Response(
                         paymentRequest.getMerchant().getMerchantName(),
                         paymentRequest.getTotalAmount()

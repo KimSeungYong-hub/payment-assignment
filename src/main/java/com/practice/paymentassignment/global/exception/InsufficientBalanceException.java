@@ -1,4 +1,4 @@
-package com.practice.paymentassignment.exception;
+package com.practice.paymentassignment.global.exception;
 
 public class InsufficientBalanceException extends BusinessException {
     public InsufficientBalanceException(String message) {

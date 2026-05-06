@@ -1,13 +1,13 @@
 package com.practice.paymentassignment;
 
 import com.practice.paymentassignment.domain.merchant.Merchant;
-import com.practice.paymentassignment.domain.payment.PaymentRequestEntity;
+import com.practice.paymentassignment.domain.payment.PaymentRequest;
 import com.practice.paymentassignment.domain.payment.service.PaymentService;
 import com.practice.paymentassignment.domain.user.User;
 import com.practice.paymentassignment.domain.user.UserService;
 import com.practice.paymentassignment.domain.wallet.WalletService;
 import com.practice.paymentassignment.dto.PaymentDto;
-import com.practice.paymentassignment.exception.ErrorCode;
+import com.practice.paymentassignment.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,12 +24,12 @@ public class PaymentTransactionProcessor {
 
     @Transactional
     public void successPayment(PaymentDto.Approve.Request request, Long userId){
-        PaymentRequestEntity paymentRequest = paymentService.findPaymentRequestWithLock(request.getPaymentId());
+        PaymentRequest paymentRequest = paymentService.findPaymentRequestWithLock(request.getPaymentId());
+
+        User user = userService.findUser(userId);
+        paymentRequest.verifyCanBeApproved(request.getMerchantId(), request.getAmount());
 
         BigDecimal totalAmount = paymentRequest.getTotalAmount();
-        User user = userService.findUser(userId);
-
-        paymentRequest.verifyCanBeApproved(request.getMerchantId(), request.getAmount());
         walletService.deduct(userId, totalAmount);
 
         paymentService.recordSuccess(paymentRequest, user, totalAmount);
@@ -37,11 +37,11 @@ public class PaymentTransactionProcessor {
 
     @Transactional
     public void failPayment(PaymentDto.Approve.Request request, Long userId, ErrorCode errorCode, String message) {
-        PaymentRequestEntity paymentRequest = paymentService.findPaymentRequestWithLock(request.getPaymentId());
+        PaymentRequest paymentRequest = paymentService.findPaymentRequestWithLock(request.getPaymentId());
 
-        BigDecimal totalAmount = paymentRequest.getTotalAmount();
         User user = userService.findUser(userId);
 
+        BigDecimal totalAmount = paymentRequest.getTotalAmount();
         paymentService.recordFailure(paymentRequest, user, totalAmount, errorCode, message);
     }
 
@@ -49,4 +49,5 @@ public class PaymentTransactionProcessor {
     public PaymentDto.Prepare.Response savePaymentRequest(Merchant merchant, String idempotencyKey) {
         return paymentService.savePaymentRequest(merchant, idempotencyKey);
     }
+
 }

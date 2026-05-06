@@ -4,7 +4,7 @@ import com.practice.paymentassignment.AbstractIntegrationTest;
 import com.practice.paymentassignment.PaymentUseCase;
 import com.practice.paymentassignment.domain.merchant.Merchant;
 import com.practice.paymentassignment.domain.merchant.repository.MerchantRepository;
-import com.practice.paymentassignment.domain.payment.PaymentRequestEntity;
+import com.practice.paymentassignment.domain.payment.PaymentRequest;
 import com.practice.paymentassignment.domain.payment.PaymentRequestStatus;
 import com.practice.paymentassignment.domain.payment.repository.PaymentRepository;
 import com.practice.paymentassignment.domain.payment.repository.PaymentRequestRepository;
@@ -14,9 +14,9 @@ import com.practice.paymentassignment.domain.user.repository.UserRepository;
 import com.practice.paymentassignment.domain.wallet.Wallet;
 import com.practice.paymentassignment.domain.wallet.repository.WalletRepository;
 import com.practice.paymentassignment.dto.PaymentDto;
-import com.practice.paymentassignment.exception.AlreadyProcessedException;
-import com.practice.paymentassignment.exception.InsufficientBalanceException;
-import com.practice.paymentassignment.exception.PaymentExpiredException;
+import com.practice.paymentassignment.global.exception.AlreadyProcessedException;
+import com.practice.paymentassignment.global.exception.InsufficientBalanceException;
+import com.practice.paymentassignment.global.exception.PaymentExpiredException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -79,13 +79,13 @@ public class PaymentServiceConcurrencyTest extends AbstractIntegrationTest {
     void confirmPayment_Concurrent_DifferentOrders() throws InterruptedException {
         // given
         // 사용자 잔액은 10,000원인데 10,000원짜리 결제 2개를 동시에 생성
-        PaymentRequestEntity payment1 = paymentRequestRepository.save(PaymentRequestEntity.builder()
+        PaymentRequest payment1 = paymentRequestRepository.save(PaymentRequest.builder()
                 .merchant(testMerchant)
                 .totalAmount(new BigDecimal("10000"))
                 .orderId("order_1")
                 .build());
 
-        PaymentRequestEntity payment2 = paymentRequestRepository.save(PaymentRequestEntity.builder()
+        PaymentRequest payment2 = paymentRequestRepository.save(PaymentRequest.builder()
                 .merchant(testMerchant)
                 .totalAmount(new BigDecimal("10000"))
                 .orderId("order_2")
@@ -147,7 +147,7 @@ public class PaymentServiceConcurrencyTest extends AbstractIntegrationTest {
     @DisplayName("동일한 결제에 대해 다수의 요청이 동시에 들어와도 단 1번만 승인된다.")
     void confirmPayment_Concurrent_SameOrder() throws InterruptedException {
         // given
-        PaymentRequestEntity payment = paymentRequestRepository.save(PaymentRequestEntity.builder()
+        PaymentRequest payment = paymentRequestRepository.save(PaymentRequest.builder()
                 .merchant(testMerchant)
                 .totalAmount(new BigDecimal("5000"))
                 .orderId("order_sametest")
@@ -186,7 +186,7 @@ public class PaymentServiceConcurrencyTest extends AbstractIntegrationTest {
         Wallet finalWallet = walletRepository.findById(testWallet.getId()).orElseThrow();
         assertThat(finalWallet.getBalance()).isEqualByComparingTo("5000"); // 10000원에서 5000원 1번만 깎힘
 
-        PaymentRequestEntity finalPaymentRequest = paymentRequestRepository.findById(payment.getId()).orElseThrow();
+        PaymentRequest finalPaymentRequest = paymentRequestRepository.findById(payment.getId()).orElseThrow();
         assertThat(finalPaymentRequest.getStatus()).isEqualTo(PaymentRequestStatus.SUCCESS);
     }
 }

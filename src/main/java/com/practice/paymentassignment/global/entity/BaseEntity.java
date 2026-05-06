@@ -1,4 +1,4 @@
-package com.practice.paymentassignment.entity;
+package com.practice.paymentassignment.global.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;

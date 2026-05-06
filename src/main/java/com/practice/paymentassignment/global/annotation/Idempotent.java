@@ -1,4 +1,4 @@
-package com.practice.paymentassignment;
+package com.practice.paymentassignment.global.annotation;
 
 import java.lang.annotation.*;
 

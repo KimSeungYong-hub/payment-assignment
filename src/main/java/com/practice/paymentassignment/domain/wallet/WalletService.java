@@ -1,7 +1,7 @@
 package com.practice.paymentassignment.domain.wallet;
 
-import com.practice.paymentassignment.exception.InsufficientBalanceException;
-import com.practice.paymentassignment.exception.WalletNotFoundException;
+import com.practice.paymentassignment.global.exception.InsufficientBalanceException;
+import com.practice.paymentassignment.global.exception.WalletNotFoundException;
 import com.practice.paymentassignment.domain.wallet.repository.WalletRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

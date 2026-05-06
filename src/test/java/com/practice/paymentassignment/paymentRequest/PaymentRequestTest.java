@@ -1,7 +1,7 @@
 package com.practice.paymentassignment.paymentRequest;
 
 import com.practice.paymentassignment.domain.merchant.Merchant;
-import com.practice.paymentassignment.domain.payment.PaymentRequestEntity;
+import com.practice.paymentassignment.domain.payment.PaymentRequest;
 import com.practice.paymentassignment.domain.payment.PaymentRequestStatus;
 import com.practice.paymentassignment.domain.user.User;
 import com.practice.paymentassignment.domain.wallet.Wallet;
@@ -23,7 +23,7 @@ public class PaymentRequestTest {
                 .build();
         ReflectionTestUtils.setField(merchant, "id", 1L);
 
-        PaymentRequestEntity paymentRequest = PaymentRequestEntity.builder()
+        PaymentRequest paymentRequest = PaymentRequest.builder()
                 .merchant(merchant)
                 .orderId("test_order_Key")
                 .totalAmount(new BigDecimal("10000"))

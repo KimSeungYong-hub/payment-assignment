@@ -1,6 +1,6 @@
 package com.practice.paymentassignment.domain.payment;
 
-import com.practice.paymentassignment.entity.BaseEntity;
+import com.practice.paymentassignment.global.entity.BaseEntity;
 import com.practice.paymentassignment.domain.user.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -9,10 +9,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.Instant;
-
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Getter
 @Entity
@@ -25,7 +21,7 @@ public class Payment extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false)
-    private PaymentRequestEntity paymentRequest;
+    private PaymentRequest paymentRequest;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false)
@@ -41,26 +37,26 @@ public class Payment extends BaseEntity {
     private String failReason;
 
     @Builder
-    public Payment(BigDecimal amount, PaymentStatus status, User user, PaymentRequestEntity paymentRequestEntity, String failReason) {
+    public Payment(BigDecimal amount, PaymentStatus status, User user, PaymentRequest paymentRequest, String failReason) {
         this.amount = amount;
         this.status = status;
-        this.paymentRequest = paymentRequestEntity;
+        this.paymentRequest = paymentRequest;
         this.user = user;
         this.failReason = failReason;
     }
 
-    public static Payment createSuccess(PaymentRequestEntity paymentRequestEntity, User user, BigDecimal amount) {
+    public static Payment createSuccess(PaymentRequest paymentRequest, User user, BigDecimal amount) {
         return Payment.builder()
-                .paymentRequestEntity(paymentRequestEntity)
+                .paymentRequest(paymentRequest)
                 .user(user)
                 .amount(amount)
                 .status(PaymentStatus.SUCCESS)
                 .build();
     }
 
-    public static Payment createFail(PaymentRequestEntity paymentRequestEntity, User user, BigDecimal amount, String reason) {
+    public static Payment createFail(PaymentRequest paymentRequest, User user, BigDecimal amount, String reason) {
         return Payment.builder()
-                .paymentRequestEntity(paymentRequestEntity)
+                .paymentRequest(paymentRequest)
                 .user(user)
                 .amount(amount)
                 .status(PaymentStatus.FAIL)
@@ -68,12 +64,5 @@ public class Payment extends BaseEntity {
                 .build();
     }
 
-//    public void complete() {
-//        this.status = PaymentStatus.SUCCESS;
-//    }
-//
-//    public void cancel() {
-//        this.status = PaymentStatus.FAIL;
-//    }
 
 }

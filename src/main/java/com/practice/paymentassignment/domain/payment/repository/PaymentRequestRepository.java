@@ -1,6 +1,6 @@
 package com.practice.paymentassignment.domain.payment.repository;
 
-import com.practice.paymentassignment.domain.payment.PaymentRequestEntity;
+import com.practice.paymentassignment.domain.payment.PaymentRequest;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -11,12 +11,13 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface PaymentRequestRepository extends JpaRepository<PaymentRequestEntity, Long> {
-    @Query("SELECT p FROM PaymentRequestEntity p JOIN FETCH p.merchant WHERE p.id = :id")
-    Optional<PaymentRequestEntity> findByIdWithMerchant(@Param("id") Long id);
-
+public interface PaymentRequestRepository extends JpaRepository<PaymentRequest, Long> {
+    @Query("SELECT p FROM PaymentRequest p JOIN FETCH p.merchant WHERE p.id = :id")
+    Optional<PaymentRequest> findByIdWithMerchant(@Param("id") Long id);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT p FROM PaymentRequestEntity p WHERE p.id = :id")
-    Optional<PaymentRequestEntity> findByIdWithPessimisticLock(@Param("id") Long id);
+    @Query("SELECT p FROM PaymentRequest p WHERE p.id = :id")
+    Optional<PaymentRequest> findByIdWithPessimisticLock(@Param("id") Long id);
+
+    Optional<PaymentRequest> findByOrderId(String orderId);
 }

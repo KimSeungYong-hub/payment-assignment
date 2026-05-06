@@ -1,10 +1,10 @@
 package com.practice.paymentassignment.domain.payment;
 
 import com.practice.paymentassignment.domain.merchant.Merchant;
-import com.practice.paymentassignment.entity.BaseEntity;
-import com.practice.paymentassignment.exception.AlreadyProcessedException;
-import com.practice.paymentassignment.exception.PaymentExpiredException;
-import com.practice.paymentassignment.exception.PaymentForgeryException;
+import com.practice.paymentassignment.global.entity.BaseEntity;
+import com.practice.paymentassignment.global.exception.AlreadyProcessedException;
+import com.practice.paymentassignment.global.exception.PaymentExpiredException;
+import com.practice.paymentassignment.global.exception.PaymentForgeryException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -18,19 +18,17 @@ import java.time.Instant;
 @Getter
 @Table(name = "payment_requests")
 @NoArgsConstructor(access = AccessLevel.PROTECTED) // JPA 기본 생성자는 Protected로 막아둠
-public class PaymentRequestEntity extends BaseEntity {
+public class PaymentRequest extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 가맹점 정보 (다대일 관계)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false)
     private Merchant merchant;
 
-    // 🌟 핵심: 가맹점의 주문번호를 유니크 키로 설정하여 DB 레벨의 멱등성 보장
-    @Column( nullable = false, unique = true)
+    @Column(nullable = false, unique = true)
     private String orderId;
 
     @Column( precision = 19, scale = 0, nullable = false)
@@ -43,7 +41,7 @@ public class PaymentRequestEntity extends BaseEntity {
     private Instant expiredAt;
 
     @Builder
-    public PaymentRequestEntity(Merchant merchant, String orderId, BigDecimal totalAmount) {
+    public PaymentRequest(Merchant merchant, String orderId, BigDecimal totalAmount) {
         this.merchant = merchant;
         this.orderId = orderId;
         this.totalAmount = totalAmount;
@@ -51,8 +49,8 @@ public class PaymentRequestEntity extends BaseEntity {
         this.expiredAt = Instant.now().plusSeconds(60 * 10); // 10분 후 만료
     }
 
-    public static PaymentRequestEntity createSuccess(Merchant merchant, BigDecimal totalAmount, String idempotencyKey) {
-        return PaymentRequestEntity.builder()
+    public static PaymentRequest createSuccess(Merchant merchant, BigDecimal totalAmount, String idempotencyKey) {
+        return PaymentRequest.builder()
                 .merchant(merchant)
                 .orderId(idempotencyKey)
                 .totalAmount(totalAmount)

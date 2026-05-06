@@ -1,4 +1,4 @@
-package com.practice.paymentassignment.exception;
+package com.practice.paymentassignment.global.exception;
 
 public class PaymentExpiredException extends BusinessException {
     public PaymentExpiredException(String message) {

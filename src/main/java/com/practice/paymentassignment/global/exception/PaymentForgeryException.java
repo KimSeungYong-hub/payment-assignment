@@ -1,4 +1,4 @@
-package com.practice.paymentassignment.exception;
+package com.practice.paymentassignment.global.exception;
 
 public class PaymentForgeryException extends BusinessException {
     public PaymentForgeryException() {

@@ -19,7 +19,7 @@ public class Wallet {
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", unique = true, nullable = false)
+    @JoinColumn( unique = true, nullable = false)
     private User user;
 
     @Column(precision = 19, scale = 0, nullable = false)

@@ -1,14 +1,14 @@
 package com.practice.paymentassignment;
 
 import com.practice.paymentassignment.domain.merchant.Merchant;
-import com.practice.paymentassignment.domain.payment.PaymentRequestEntity;
+import com.practice.paymentassignment.domain.payment.PaymentRequest;
 import com.practice.paymentassignment.domain.payment.service.PaymentService;
 import com.practice.paymentassignment.domain.user.User;
 import com.practice.paymentassignment.domain.user.UserService;
 import com.practice.paymentassignment.domain.wallet.WalletService;
 import com.practice.paymentassignment.dto.PaymentDto;
-import com.practice.paymentassignment.exception.ErrorCode;
-import com.practice.paymentassignment.exception.InsufficientBalanceException;
+import com.practice.paymentassignment.global.exception.ErrorCode;
+import com.practice.paymentassignment.global.exception.InsufficientBalanceException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,7 +19,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.verify;
@@ -51,7 +50,7 @@ class PaymentTransactionProcessorTest {
                                 .build();
                 ReflectionTestUtils.setField(merchant, "id", 1L);
 
-                PaymentRequestEntity paymentRequest = PaymentRequestEntity.builder()
+                PaymentRequest paymentRequest = PaymentRequest.builder()
                                 .merchant(merchant)
                                 .totalAmount(new BigDecimal("10000"))
                                 .build();
@@ -84,7 +83,7 @@ class PaymentTransactionProcessorTest {
                                 .build();
                 ReflectionTestUtils.setField(merchant, "id", 1L);
 
-                PaymentRequestEntity paymentRequest = PaymentRequestEntity.builder()
+                PaymentRequest paymentRequest = PaymentRequest.builder()
                                 .merchant(merchant)
                                 .totalAmount(new BigDecimal("10000"))
                                 .build();
@@ -119,7 +118,7 @@ class PaymentTransactionProcessorTest {
                                 .build();
                 ReflectionTestUtils.setField(merchant, "id", 1L);
 
-                PaymentRequestEntity paymentRequest = PaymentRequestEntity.builder()
+                PaymentRequest paymentRequest = PaymentRequest.builder()
                                 .merchant(merchant)
                                 .totalAmount(new BigDecimal("10000"))
                                 .build();

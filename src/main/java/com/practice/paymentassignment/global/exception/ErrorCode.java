@@ -1,4 +1,4 @@
-package com.practice.paymentassignment.exception;
+package com.practice.paymentassignment.global.exception;
 
 import lombok.Getter;
 import org.springframework.http.HttpStatus;

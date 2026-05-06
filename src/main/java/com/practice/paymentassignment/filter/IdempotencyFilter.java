@@ -2,8 +2,8 @@ package com.practice.paymentassignment.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.practice.paymentassignment.dto.IdempotencyRedisResponse;
-import com.practice.paymentassignment.exception.ErrorCode;
-import com.practice.paymentassignment.exception.ErrorResponse;
+import com.practice.paymentassignment.global.exception.ErrorCode;
+import com.practice.paymentassignment.global.exception.ErrorResponse;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -11,14 +11,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.concurrent.TimeUnit;
 
 //@Component
 @RequiredArgsConstructor

@@ -4,7 +4,7 @@ import com.practice.paymentassignment.domain.user.User;
 import com.practice.paymentassignment.domain.wallet.Wallet;
 import com.practice.paymentassignment.domain.wallet.WalletService;
 import com.practice.paymentassignment.domain.wallet.repository.WalletRepository;
-import com.practice.paymentassignment.exception.InsufficientBalanceException;
+import com.practice.paymentassignment.global.exception.InsufficientBalanceException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

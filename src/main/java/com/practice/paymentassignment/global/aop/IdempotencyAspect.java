@@ -1,21 +1,17 @@
-package com.practice.paymentassignment;
+package com.practice.paymentassignment.global.aop;
 
-import com.practice.paymentassignment.dto.IdempotencyRedisResponse;
-import com.practice.paymentassignment.exception.AlreadyProcessedException;
-import com.practice.paymentassignment.exception.BusinessException;
-import com.practice.paymentassignment.exception.ErrorCode;
-import com.practice.paymentassignment.exception.ErrorResponse;
+import com.practice.paymentassignment.global.annotation.Idempotent;
+import com.practice.paymentassignment.global.exception.AlreadyProcessedException;
+import com.practice.paymentassignment.global.exception.InsufficientBalanceException;
+import com.practice.paymentassignment.global.exception.PaymentExpiredException;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.TimeToLive;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -30,7 +26,7 @@ public class IdempotencyAspect {
 
     private final StringRedisTemplate redisTemplate;
 
-    @Around("@annotation(com.practice.paymentassignment.Idempotent)")
+    @Around("@annotation(com.practice.paymentassignment.global.annotation.Idempotent)")
     public Object checkIdempotency(ProceedingJoinPoint joinPoint) throws Throwable {
 
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
@@ -44,7 +40,12 @@ public class IdempotencyAspect {
 
         HttpServletRequest request = attributes.getRequest();
         String idempotencyHeader = request.getHeader("Idempotency-Key");
-        String redisKey = idempotent.prefix()+ idempotencyHeader;
+
+        if (idempotencyHeader == null || idempotencyHeader.isBlank()) {
+            throw new IllegalArgumentException("Idempotency-Key 헤더가 필요합니다.");
+        }
+
+        String redisKey = idempotent.prefix() + idempotencyHeader;
 
         Boolean isFirstRequest = redisTemplate.opsForValue().setIfAbsent(redisKey, "PROGRESSING", idempotent.ttl(), TimeUnit.SECONDS);
 
@@ -55,11 +56,15 @@ public class IdempotencyAspect {
 
         try {
             return joinPoint.proceed();
-        }catch (Exception e){
-            if (e instanceof BusinessException) {
+        } catch (Exception e) {
+            // 키를 유지해야 하는 예외들 (재시료 불가능한 경우)
+            if (e instanceof AlreadyProcessedException ||
+                e instanceof InsufficientBalanceException ||
+                e instanceof PaymentExpiredException) {
                 throw e;
             }
-            // 5xx (서버 에러, DB 다운 등) -> 락 삭제 (캐싱 X, 재시도 허용)
+
+            // 나머지 예외들은 키 삭제 (재시도 가능)
             redisTemplate.delete(redisKey);
             throw e;
         }

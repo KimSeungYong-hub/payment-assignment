@@ -1,6 +1,6 @@
 package com.practice.paymentassignment.domain.user;
 
-import com.practice.paymentassignment.exception.UserNotFoundException;
+import com.practice.paymentassignment.global.exception.UserNotFoundException;
 import com.practice.paymentassignment.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
