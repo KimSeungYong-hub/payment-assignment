@@ -1,4 +1,4 @@
-package com.practice.paymentassignment.filter;
+package com.practice.paymentassignment.aop;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.practice.paymentassignment.AbstractIntegrationTest;

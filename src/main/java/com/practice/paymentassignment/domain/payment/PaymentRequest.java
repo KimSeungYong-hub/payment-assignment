@@ -31,6 +31,10 @@ public class PaymentRequest extends BaseEntity {
     @Column(nullable = false, unique = true)
     private String orderId;
 
+//    @JdbcTypeCode(SqlTypes.BINARY) // 핵심! DB에 BINARY(16)으로 저장하라는 지시어
+//    @Column(nullable = false, unique = true, columnDefinition = "BINARY(16)")
+//    private UUID orderId;
+
     @Column( precision = 19, scale = 0, nullable = false)
     private BigDecimal totalAmount;
 

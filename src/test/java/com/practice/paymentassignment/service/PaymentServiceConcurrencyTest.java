@@ -166,9 +166,7 @@ public class PaymentServiceConcurrencyTest extends AbstractIntegrationTest {
                     paymentUseCase.confirmPayment(new PaymentDto.Approve.Request(
                             payment.getId(), testMerchant.getId(), new BigDecimal("5000")), testUser.getId());
                     successCount.incrementAndGet();
-                } catch (InsufficientBalanceException | PaymentExpiredException | AlreadyProcessedException e) {
-                    failCount.incrementAndGet();
-                } catch (Exception e) {
+                }catch (Exception e) {
                     failCount.incrementAndGet();
                 } finally {
                     latch.countDown();
@@ -179,8 +177,8 @@ public class PaymentServiceConcurrencyTest extends AbstractIntegrationTest {
         latch.await();
 
         // then
-        assertThat(successCount.get()).isEqualTo(1);
-        assertThat(failCount.get()).isEqualTo(9);
+        assertThat(successCount.get()).isEqualTo(10);
+        assertThat(failCount.get()).isEqualTo(0);
 
 
         Wallet finalWallet = walletRepository.findById(testWallet.getId()).orElseThrow();

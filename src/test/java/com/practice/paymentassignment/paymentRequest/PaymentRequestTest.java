@@ -5,6 +5,7 @@ import com.practice.paymentassignment.domain.payment.PaymentRequest;
 import com.practice.paymentassignment.domain.payment.PaymentRequestStatus;
 import com.practice.paymentassignment.domain.user.User;
 import com.practice.paymentassignment.domain.wallet.Wallet;
+import com.practice.paymentassignment.global.exception.AlreadyProcessedException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -31,11 +32,12 @@ public class PaymentRequestTest {
         ReflectionTestUtils.setField(paymentRequest, "status", PaymentRequestStatus.SUCCESS);
 
         // when & then
-        assertThrows(IllegalArgumentException.class, () -> paymentRequest.verifyCanBeApproved(merchant.getId(), new BigDecimal("10000")));
+        assertThrows(AlreadyProcessedException.class, () -> paymentRequest.verifyCanBeApproved(merchant.getId(), new BigDecimal("10000")));
 
     }
 
-
+    @Test
+    @DisplayName("결제 금액 값 검증 오류 발생")
     void pay_FailsDueToInvalidAmount() {
         // given
         User user = new User(1L, "Tester");

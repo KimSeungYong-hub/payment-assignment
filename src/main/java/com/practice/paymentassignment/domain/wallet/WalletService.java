@@ -4,11 +4,13 @@ import com.practice.paymentassignment.global.exception.InsufficientBalanceExcept
 import com.practice.paymentassignment.global.exception.WalletNotFoundException;
 import com.practice.paymentassignment.domain.wallet.repository.WalletRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 @Transactional(readOnly = true)
@@ -18,11 +20,11 @@ public class WalletService {
     @Transactional
     public void deduct(Long userId, BigDecimal amount) {
         Wallet wallet = findWalletWithLock(userId);
-
-        boolean isPaid = wallet.pay(amount);
-        if (!isPaid) {
-            throw new InsufficientBalanceException("잔액이 부족합니다.");
-        }
+        BigDecimal beforeBalance = wallet.getBalance();
+        log.info("Before deduct - userId: {}, currentBalance: {}, amount: {}", userId, beforeBalance, amount);
+        wallet.pay(amount);
+        BigDecimal afterBalance = wallet.getBalance();
+        log.info("After deduct - userId: {}, newBalance: {}, deducted: {}", userId, afterBalance, amount);
     }
 
     private Wallet findWalletWithLock(Long userId) {

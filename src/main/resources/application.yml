@@ -8,11 +8,14 @@ spring:
       ddl-auto: update
     open-in-view: false
 ---
-#spring:
-#  config:
-#    activate:
-#      on-profile: test
-#  datasource:
-#    url: jdbc:tc:mariadb:11.4:///test?TC_REUSABLE=true
-#    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+spring:
+  config:
+    activate:
+      on-profile: test
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  datasource:
+    url: jdbc:tc:mariadb:11.4:///test?TC_REUSABLE=true
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
 #spring.jpa.hibernate.jdbc.time_zone= UTC

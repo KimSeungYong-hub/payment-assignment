@@ -2,6 +2,7 @@ package com.practice.paymentassignment.wallet;
 
 import com.practice.paymentassignment.domain.wallet.Wallet;
 import com.practice.paymentassignment.domain.user.User;
+import com.practice.paymentassignment.global.exception.InsufficientBalanceException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -13,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class WalletTest {
 
     @Test
-    @DisplayName("지갑 잔액이 결제 금액보다 적은 경우 false를 반환한다.")
+    @DisplayName("지갑 잔액이 결제 금액보다 적은 경우 InsufficientBalanceException 발생")
     void pay_FailsDueToBalance() {
         // given
         User user = new User(1L, "Tester");
@@ -22,11 +23,8 @@ public class WalletTest {
                 .balance(new BigDecimal("9000"))
                 .build();
 
-        // when
-        boolean result = wallet.pay(new BigDecimal("10000"));
-
-        // then
-        assertThat(result).isFalse();
+        // when & then
+        assertThrows(InsufficientBalanceException.class, ()-> wallet.pay(new BigDecimal("10000")));
         assertThat(wallet.getBalance()).isEqualByComparingTo("9000"); // 잔액 불변 확인
     }
 

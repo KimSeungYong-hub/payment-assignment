@@ -1,9 +1,9 @@
 package com.practice.paymentassignment.controller;
 
 import com.practice.paymentassignment.domain.payment.service.PaymentService;
+import com.practice.paymentassignment.dto.PaymentDto;
 import com.practice.paymentassignment.global.annotation.Idempotent;
 import com.practice.paymentassignment.PaymentUseCase;
-import com.practice.paymentassignment.dto.PaymentDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +18,7 @@ public class PaymentController {
     @Idempotent(ttl = 300, prefix = "idempotency:readyPayment:")
     @PostMapping("/ready")
     public ResponseEntity<PaymentDto.Prepare.Response> readyPayment(@RequestBody PaymentDto.Prepare.Request request,
-            @RequestHeader(value = "Idempotency-Key") String idempotencyKey) {
+                                                                    @RequestHeader(value = "Idempotency-Key") String idempotencyKey) {
         PaymentDto.Prepare.Response response = paymentUseCase.readyPayment(request, idempotencyKey);
         return ResponseEntity.ok(response);
     }

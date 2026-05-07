@@ -52,8 +52,6 @@ public class PaymentService {
 
     @Transactional
     public PaymentDto.Prepare.Response savePaymentRequest(Merchant merchant, String idempotencyKey) {
-        log.info("Preparing payment for merchantId: {}, idempotencyKey: {}", merchant.getId(), idempotencyKey);
-
         // 이미 같은 멱등키로 생성된 결제 요청이 있는지 확인
         //멱등키 생성 시 어떤 방식으로 하는게 효율적인가 uuidv4 문자열 ->인덱스 단편화?
         //uuid v7 시간순 정렬 가능으로 성능 방어 탁월
