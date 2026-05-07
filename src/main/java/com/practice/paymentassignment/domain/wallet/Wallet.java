@@ -34,6 +34,8 @@ public class Wallet {
 
     public void pay(BigDecimal amount) {
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            // CustomException으로 대체해주세요. 
+            // IllegalArgumentException는 사용자 정의 영역 밖입니다. 제어가 힘듭니다.
             throw new IllegalArgumentException("결제 금액은 0원보다 커야 합니다.");
         }
         if (this.balance.compareTo(amount) < 0) {
