@@ -9,7 +9,9 @@ services:
       - 'MARIADB_USER=myuser'
       - 'MARIADB_PASSWORD=myuser_pw'
     ports:
-      - '3306:3306'
+    # spring-boot-starter-docker-compose 를 사용하면 port를 expose 하지 않아도 됩니다.
+    # intellij 를 사용한다면 spring debugger plugin을 설치해주세요.
+      - '3306'
   redis:
     image: 'redis:7-alpine'
 #    restart: unless-stopped

@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 
 import java.math.BigDecimal;
 
+// DTO 컨벤션이 일관적이지 않습니다. 스타일을 하나로 통일해주세요.
+// nested class를 사용하신 이유 또한 명확해야할 것 같습니다.
 public class PaymentDto {
 
     // 1. 결제 준비 API 전용
