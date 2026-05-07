@@ -17,6 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.Optional;
 
+// 1. UseCase 같은데, 네이밍이 일관적이지 않고 명확하지 않습니다.
+// UseCase가 UseCase를 참조하는 상황은 간접순환참조를 야기합니다.
+// 2. UseCase의 역할과 책임에 대해 다시 한번 생각해보시길 바랍니다.
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -59,6 +62,7 @@ public class PaymentTransactionProcessor {
             request.getPaymentId(), userId, totalAmount, errorCode);
     }
 
+    // 이건 왜 존재하는 메서드인가요, paymentService#savePaymentRequest를 호출하기만 하는 무의미한 메서드 같아보입니다.
     @Transactional
     public PaymentDto.Prepare.Response savePaymentRequest(Merchant merchant, String idempotencyKey) {
         return paymentService.savePaymentRequest(merchant, idempotencyKey);

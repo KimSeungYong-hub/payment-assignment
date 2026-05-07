@@ -28,13 +28,20 @@ public class PaymentRequest extends BaseEntity {
     @JoinColumn(nullable = false)
     private Merchant merchant;
 
+    // 컬럼명이 혼란만 야기할 것 같습니다. 
+    // orderId라면 주문(order)이란 테이블의 id이라고 해석하는 게 일반적이지 않을까요
+    // 또한 이후에 order라는 테이블이 생겼을 때 어떻게 대처하기 힘들 것 같습니다.
     @Column(nullable = false, unique = true)
     private String orderId;
+
+
+// 사용 안하는 코드는 주석이 아니라, 제거해주세요. 혼란만 야기합니다.
 
 //    @JdbcTypeCode(SqlTypes.BINARY) // 핵심! DB에 BINARY(16)으로 저장하라는 지시어
 //    @Column(nullable = false, unique = true, columnDefinition = "BINARY(16)")
 //    private UUID orderId;
 
+    // BigDecimal과 BigDecimal의 precision과 scale을 설정할 땐 합당한 이유가 필요합니다.
     @Column( precision = 19, scale = 0, nullable = false)
     private BigDecimal totalAmount;
 
@@ -95,6 +102,8 @@ public class PaymentRequest extends BaseEntity {
         if (this.totalAmount.compareTo(amount) != 0) {
             throw new PaymentForgeryException("결제 요청 금액이 실제 주문 금액과 일치하지 않습니다. (위변조 결제 방어)");
         }
+        // 이렇게 되면 verifyCanBeApproved 호출하기 전까지 expired 상태가 업데이트 안되는 거 아닌가요?
+        // 그렇게 되면 사용자는 만료된 요청이 만료가 안된 것처럼 보일 것 같은데요.
         if(this.isExpired()){
             this.markAsExpired();
             throw new PaymentExpiredException("결제 시간이 만료되었습니다. 처음부터 다시 시도해주세요.");

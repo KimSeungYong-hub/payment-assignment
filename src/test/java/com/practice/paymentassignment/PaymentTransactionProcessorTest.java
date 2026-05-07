@@ -23,6 +23,10 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.verify;
 
+
+// 테스트 케이스가 부족합니다. 엣지 케이스와 실패 케이스를 포함한 충분한 케이스를 작성해주세요.
+// 또한 테스트는 검증과 동시에 명세의 기능 또한 지닙니다. 
+// 다른 팀원이 테스트 코드와 displayName을 읽고 해당 비즈니스 로직의 플로우를 파악할 수 있을 정도가 되어야합니다.
 @ExtendWith(MockitoExtension.class)
 class PaymentTransactionProcessorTest {
 

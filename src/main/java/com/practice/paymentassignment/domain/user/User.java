@@ -20,7 +20,7 @@ public class User {
     @Column(length = 50, nullable = false)
     private String name;
 
-
+    // Builder를 사용한다면 생성자는 private 하게 만들 것 같습니다.
     @Builder
     public User(Long id, String name) {
         this.id = id;

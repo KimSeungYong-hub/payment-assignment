@@ -23,6 +23,11 @@ import java.util.Optional;
 @Service
 public class PaymentService {
 
+    // payment와 paymentRequest 라는 테이블명이 명확하지 않습니다. 
+    // 저라면 다음과 같이 변경할 것 같습니다.
+    // paymentRequest -> payment (결제)
+    // payment -> transaction (거래)
+
     private final PaymentRepository paymentRepository;
     private final PaymentRequestRepository paymentRequestRepository;
 
@@ -50,6 +55,9 @@ public class PaymentService {
                 .orElseThrow(() -> new PaymentNotFoundException("주문 정보를 찾을 수 없습니다."));
     }
 
+    // 이미 AOP를 구성했는데, 테이블에도 저장하는 이유가 있나요?
+    // idempotencyKey를 literal로 받는 이유가 있나요?
+    // 또한 잘못된 문자열이 전달되었을 때 필터링하는 로직도 필요할 것 같습니다. 검증이 전체적으로 부족합니다.
     @Transactional
     public PaymentDto.Prepare.Response savePaymentRequest(Merchant merchant, String idempotencyKey) {
         // 이미 같은 멱등키로 생성된 결제 요청이 있는지 확인
