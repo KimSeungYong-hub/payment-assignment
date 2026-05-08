@@ -1,9 +1,7 @@
 package com.practice.paymentassignment.global.aop;
 
-import com.practice.paymentassignment.global.annotation.Idempotent;
+import com.practice.paymentassignment.global.annotation.IdempotentRequest;
 import com.practice.paymentassignment.global.exception.AlreadyProcessedException;
-import com.practice.paymentassignment.global.exception.InsufficientBalanceException;
-import com.practice.paymentassignment.global.exception.PaymentExpiredException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +27,7 @@ public class IdempotencyAspect {
 
     private final StringRedisTemplate redisTemplate;
 
-    @Around("@annotation(com.practice.paymentassignment.global.annotation.Idempotent)")
+    @Around("@annotation(com.practice.paymentassignment.global.annotation.IdempotentRequest)")
     public Object checkIdempotency(ProceedingJoinPoint joinPoint) throws Throwable {
 
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
@@ -38,7 +36,7 @@ public class IdempotencyAspect {
         }
 
         Method method = ((MethodSignature) joinPoint.getSignature()).getMethod();
-        Idempotent idempotent = AnnotationUtils.findAnnotation(method, Idempotent.class);
+        IdempotentRequest idempotentRequest = AnnotationUtils.findAnnotation(method, IdempotentRequest.class);
 
         HttpServletRequest request = attributes.getRequest();
         String idempotencyHeader = request.getHeader("Idempotency-Key");
@@ -47,9 +45,9 @@ public class IdempotencyAspect {
             throw new IllegalArgumentException("Idempotency-Key 헤더가 필요합니다.");
         }
 
-        String redisKey = idempotent.prefix() + idempotencyHeader;
+        String redisKey = idempotentRequest.prefix() + idempotencyHeader;
 
-        Boolean isFirstRequest = redisTemplate.opsForValue().setIfAbsent(redisKey, "LOCKED", idempotent.ttl(), TimeUnit.SECONDS);
+        Boolean isFirstRequest = redisTemplate.opsForValue().setIfAbsent(redisKey, "LOCKED", idempotentRequest.ttl(), TimeUnit.SECONDS);
 
         if (Boolean.FALSE.equals(isFirstRequest)) {
             log.warn("중복 요청 감지 - 멱등성 키: {}", redisKey);

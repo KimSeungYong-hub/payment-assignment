@@ -31,7 +31,7 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class IdempotentTest extends AbstractIntegrationTest {
+public class IdempotentRequestTest extends AbstractIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;

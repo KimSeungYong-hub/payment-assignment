@@ -7,7 +7,7 @@ import java.lang.annotation.*;
 //@Documented
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Idempotent {
+public @interface IdempotentRequest {
     // Redis 키의 접두사 (업무 도메인마다 분리하기 위함)
     String prefix() default "idempotency:";
 
