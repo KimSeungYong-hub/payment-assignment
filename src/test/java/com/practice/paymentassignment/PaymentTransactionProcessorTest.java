@@ -43,7 +43,7 @@ class PaymentTransactionProcessorTest {
         private PaymentTransactionProcessor paymentTransactionProcessor;
 
         @Test
-        @DisplayName("결제 성공 - 잔액 충분")
+        @DisplayName("잔액 충분한 경우 결제 성공한다")
         void successPayment_WhenSufficientBalance() {
                 // given
                 PaymentDto.Approve.Request request = new PaymentDto.Approve.Request(1L, 1L, new BigDecimal("10000"));
@@ -76,7 +76,7 @@ class PaymentTransactionProcessorTest {
         }
 
         @Test
-        @DisplayName("결제 실패 - 잔액 부족 시 예외 발생")
+        @DisplayName("결제 시도 시 잔액 부족한 경우 InsufficientBalanceException 예외 발생")
         void successPayment_WhenInsufficientBalance_ThrowsException() {
                 // given
                 PaymentDto.Approve.Request request = new PaymentDto.Approve.Request(1L, 1L, new BigDecimal("10000"));
