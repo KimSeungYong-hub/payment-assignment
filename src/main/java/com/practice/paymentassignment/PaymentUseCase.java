@@ -19,7 +19,7 @@ public class PaymentUseCase {
     // readyPayment는 메서드명이 명확하지 않습니다.
     // 차라리 createPayment가 나을 것 같습니다.
     @Transactional
-    public PaymentDto.Prepare.Response readyPayment(PaymentDto.Prepare.Request request, String idempotencyKey) {
+    public PaymentDto.Prepare.Response createPayment(PaymentDto.Prepare.Request request, String idempotencyKey) {
         Merchant merchant = merchantService.findMerchant(request.getMerchantId());
         return paymentTransactionProcessor.savePaymentRequest(merchant, idempotencyKey);
     }
